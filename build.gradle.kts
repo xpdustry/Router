@@ -54,9 +54,6 @@ tasks.withType(JavaCompile::class.java).configureEach {
     }
 }
 
-// Disables the signing task
-tasks.signMavenPublication.get().enabled = false
-
 // Required if you want to use the Release GitHub action
 tasks.create("getArtifactPath") {
     doLast { println(tasks.shadowJar.get().archiveFile.get().toString()) }
@@ -84,11 +81,20 @@ tasks.create("createRelease") {
     }
 }
 
+signing {
+    val signingKey: String? by project
+    val signingPassword: String? by project
+    useInMemoryPgpKeys(signingKey, signingPassword)
+}
+
 indra {
     javaVersions {
         target(17)
         minimumToolchain(17)
     }
+
+    publishReleasesTo("xpdustry", "https://repo.xpdustry.fr/releases")
+    publishSnapshotsTo("xpdustry", "https://repo.xpdustry.fr/snapshots")
 
     mitLicense()
 
