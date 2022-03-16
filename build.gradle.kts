@@ -29,8 +29,8 @@ toxopid {
     mindustryRuntimeVersion.set("22349")
 
     modDependencies.set(listOf(
-        ModDependency("Xpdustry/Distributor", "v2.6.0", "distributor-core.jar"),
-        ModDependency("Xpdustry/Distributor", "v2.6.0", "distributor-js.jar")
+        ModDependency("Xpdustry/Distributor", "v2.6.1", "distributor-core.jar"),
+        ModDependency("Xpdustry/Distributor", "v2.6.1", "distributor-js.jar")
     ))
 }
 
@@ -43,8 +43,8 @@ repositories {
 }
 
 dependencies {
-    compileOnly("fr.xpdustry:distributor-core:2.6.0")
-    compileOnly("fr.xpdustry:distributor-js:2.6.0")
+    compileOnly("fr.xpdustry:distributor-core:2.6.1")
+    compileOnly("fr.xpdustry:distributor-js:2.6.1")
 
     val junit = "5.8.2"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
