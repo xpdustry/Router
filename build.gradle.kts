@@ -1,3 +1,5 @@
+import fr.xpdustry.toxopid.extension.MindustryRepository
+import fr.xpdustry.toxopid.extension.ModDependency
 import fr.xpdustry.toxopid.util.ModMetadata
 import fr.xpdustry.toxopid.extension.ModTarget
 import net.ltgt.gradle.errorprone.CheckSeverity
@@ -22,13 +24,28 @@ toxopid {
     modTarget.set(ModTarget.HEADLESS)
     arcCompileVersion.set(metadata.minGameVersion)
     mindustryCompileVersion.set(metadata.minGameVersion)
+
+    mindustryRepository.set(MindustryRepository.BE)
+    mindustryRuntimeVersion.set("22349")
+
+    modDependencies.set(listOf(
+        ModDependency("Xpdustry/Distributor", "v2.6.0", "distributor-core.jar"),
+        ModDependency("Xpdustry/Distributor", "v2.6.0", "distributor-js.jar")
+    ))
 }
 
 repositories {
     mavenCentral()
+    maven("https://repo.xpdustry.fr/releases") {
+        name = "xpdustry-releases-repository"
+        mavenContent { releasesOnly() }
+    }
 }
 
 dependencies {
+    compileOnly("fr.xpdustry:distributor-core:2.6.0")
+    compileOnly("fr.xpdustry:distributor-js:2.6.0")
+
     val junit = "5.8.2"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")

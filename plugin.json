@@ -1,13 +1,13 @@
 {
-  "name": "xpdustry-template-plugin",
-  "displayName": "Xpdustry TemplatePlugin",
+  "name": "xpdustry-router-plugin",
+  "displayName": "Xpdustry RouterPlugin",
   "author": "Xpdustry",
-  "description": "A template plugin for easier development, enjoy.",
-  "version": "2.3.1",
+  "description": "A Reddit-like server for sharing schematics.",
+  "version": "0.1.0",
   "minGameVersion": "v126.2",
   "hidden": true,
   "java": true,
-  "main": "fr.xpdustry.template.TemplatePlugin",
-  "repo": "Xpdustry/TemplatePlugin",
+  "main": "fr.xpdustry.router.Router",
+  "repo": "Xpdustry/Router",
   "dependencies": []
 }

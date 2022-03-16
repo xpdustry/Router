@@ -1,14 +1,15 @@
-package fr.xpdustry.template;
+package fr.xpdustry.router;
 
 import arc.util.CommandHandler;
 import arc.util.Log;
+import fr.xpdustry.distributor.plugin.*;
 import mindustry.mod.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 
 /** Template plugin. */
 @SuppressWarnings("unused")
-public class TemplatePlugin extends Plugin {
+public class Router extends AbstractPlugin {
     /** This method is called when game initializes. */
     @Override public void init() {
         Log.info("Bonjour !");
