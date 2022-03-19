@@ -3,7 +3,7 @@ const WORLD_HEIGHT = 150
 const SCHEM_SIZE = 64
 const plots = new Seq()
 
-const generator = cons(tiles => {
+Vars.world.loadGenerator(WORLD_WIDTH, WORLD_HEIGHT, cons(tiles => {
   tiles.fill();
   tiles.forEach(t => t.setFloor(Blocks.metalFloor4.asFloor()));
 
@@ -44,24 +44,4 @@ const generator = cons(tiles => {
   }
 
   Log.info("PLOTS @", plots)
-})
-
-Vars.world.loadGenerator(WORLD_WIDTH, WORLD_HEIGHT, generator);
-
-/*
-
-function reload() {
-  const reloader = new WorldReloader()
-  reloader.begin()
-  Vars.logic.reset()
-
-  Vars.world.loadGenerator(WORLD_WIDTH, WORLD_HEIGHT, generator)
-  Vars.state.rules.modeName = "[red]RedditDustry :^)"
-
-  Vars.logic.play()
-  reloader.end()
-}
-
-reload()
-
- */
+}))
