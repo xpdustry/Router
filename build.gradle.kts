@@ -25,20 +25,34 @@ toxopid {
     arcCompileVersion.set("v" + metadata.minGameVersion)
     mindustryCompileVersion.set("v" + metadata.minGameVersion)
 
+    /*
     mindustryRepository.set(MindustryRepository.BE)
-    mindustryRuntimeVersion.set("22349")
+    mindustryRuntimeVersion.set("22390")
 
-    modDependencies.set(listOf(
+    modDependencies.set(
+        listOf(
+            ModDependency("Xpdustry/Javelin", "v0.3.1", "Javelin.jar"),
             ModDependency("Xpdustry/Distributor", "v2.6.1", "distributor-core.jar"),
-            ModDependency("Xpdustry/Distributor", "v2.6.1", "distributor-js.jar")
-    ))
+            ModDependency("Xpdustry/KotlinRuntimePlugin", "v1.0.0", "xpdustry-kotlin-stdlib.jar")
+        )
+    )
+     */
 }
 
 repositories {
     mavenCentral()
+    maven("https://repo.xpdustry.fr/releases") {
+        name = "xpdustry-releases"
+        mavenContent { releasesOnly() }
+    }
 }
 
 dependencies {
+    // compileOnly("fr.xpdustry:javelin:0.3.1")
+    // compileOnly("fr.xpdustry:distributor-core:2.6.1" )
+    // implementation("net.mindustry_ddns:file-store:2.1.0")
+    // implementation("org.aeonbits.owner:owner-java8:1.0.12")
+
     val junit = "5.8.2"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
@@ -83,11 +97,6 @@ tasks.shadowJar {
 
 license {
     header(rootProject.file("LICENSE_HEADER.md"))
-    // Double slashes are easier to handle
-    style["java"] = HeaderStyle.DOUBLE_SLASH.format
-    style["kt"] = HeaderStyle.DOUBLE_SLASH.format
-    style["groovy"] = HeaderStyle.DOUBLE_SLASH.format
-    style["scala"] = HeaderStyle.DOUBLE_SLASH.format
 }
 
 signing {

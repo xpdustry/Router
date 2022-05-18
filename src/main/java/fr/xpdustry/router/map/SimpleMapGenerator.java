@@ -1,7 +1,26 @@
-package fr.xpdustry.router.world.generator;
+/*
+ * Router, a Reddit-like Mindustry plugin for sharing schematics.
+ *
+ * Copyright (C) 2022 Xpdustry
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+package fr.xpdustry.router.map;
 
 import arc.struct.*;
-import fr.xpdustry.router.world.plot.*;
+import fr.xpdustry.router.plot.*;
+import java.util.*;
 import mindustry.*;
 import mindustry.content.*;
 import mindustry.game.*;
@@ -10,10 +29,9 @@ import mindustry.world.blocks.environment.*;
 import org.jetbrains.annotations.*;
 
 final class SimpleMapGenerator implements MapGenerator {
-  static final SimpleMapGenerator INSTANCE = new SimpleMapGenerator();
 
-  private static final int PLOT_QUARTER_X = 6;
-  private static final int PLOT_QUARTER_Y = 4;
+  private static final int PLOT_QUARTER_X = 2;
+  private static final int PLOT_QUARTER_Y = 2;
   private static final int PLOT_SIZE_X = 32;
   private static final int PLOT_SIZE_Y = 32;
 
@@ -31,9 +49,9 @@ final class SimpleMapGenerator implements MapGenerator {
   private static final Floor PLOT_FLOOR = Blocks.metalFloor3.asFloor();
   private static final Floor ROAD_FLOOR = Blocks.dacite.asFloor();
 
-  private final Seq<Plot> plots = new Seq<>();
+  private final Seq<PlotArea> plots = new Seq<>();
 
-  private SimpleMapGenerator() {
+  SimpleMapGenerator() {
   }
 
   @Override
@@ -47,8 +65,8 @@ final class SimpleMapGenerator implements MapGenerator {
   }
 
   @Override
-  public @NotNull Iterable<Plot> getPlots() {
-    return plots;
+  public @NotNull Collection<PlotArea> getPlots() {
+    return plots.list();
   }
 
   @Override
@@ -68,7 +86,7 @@ final class SimpleMapGenerator implements MapGenerator {
             final var x = ((PLOT_QUARTER_SIZE_X + MAIN_ROAD_SIZE) * i) + (ROAD_SIZE * (k + 1 - i)) + (PLOT_TOTAL_SIZE_X * k);
             final var y = ((PLOT_QUARTER_SIZE_Y + MAIN_ROAD_SIZE) * j) + (ROAD_SIZE * (l + 1 - j)) + (PLOT_TOTAL_SIZE_Y * l);
 
-            plots.add(Plot.simple(x + 1, y + 1, PLOT_SIZE_X, PLOT_SIZE_Y));
+            plots.add(PlotArea.of(x + 1, y + 1, PLOT_SIZE_X, PLOT_SIZE_Y));
             setFloors(x, y, PLOT_TOTAL_SIZE_X, PLOT_TOTAL_SIZE_Y, BORDER_FLOOR); // Outline
             setFloors(x + 1, y + 1, PLOT_SIZE_X, PLOT_SIZE_Y, PLOT_FLOOR);       // Internal
           }

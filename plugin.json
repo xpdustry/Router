@@ -3,11 +3,10 @@
   "displayName": "Xpdustry RouterPlugin",
   "author": "Phinner, Router",
   "description": "A Reddit-like server for sharing schematics.",
-  "version": "0.1.0-SNAPSHOT",
+  "version": "0.2.0-SNAPSHOT",
   "minGameVersion": "126",
   "hidden": true,
   "java": true,
   "main": "fr.xpdustry.router.RouterPlugin",
-  "repo": "Xpdustry/Router",
-  "dependencies": []
+  "repo": "Xpdustry/Router"
 }
