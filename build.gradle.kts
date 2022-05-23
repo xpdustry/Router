@@ -1,5 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 import fr.xpdustry.toxopid.ModPlatform
+import fr.xpdustry.toxopid.task.GitHubArtifact
+import fr.xpdustry.toxopid.task.GitHubDownload
 import fr.xpdustry.toxopid.util.ModMetadata
 import fr.xpdustry.toxopid.util.anukenJitpack
 import fr.xpdustry.toxopid.util.mindustryDependencies
@@ -28,10 +30,15 @@ toxopid {
 repositories {
     mavenCentral()
     anukenJitpack()
+    maven("https://repo.xpdustry.fr/releases") {
+        name = "xpdustry-releases"
+        mavenContent { releasesOnly() }
+    }
 }
 
 dependencies {
     mindustryDependencies()
+    compileOnly("fr.xpdustry:distributor-core:2.6.1")
 
     val junit = "5.8.2"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
@@ -58,9 +65,37 @@ tasks.withType(JavaCompile::class.java).configureEach {
     }
 }
 
+val downloadModLoader = tasks.create<GitHubDownload>("downloadModLoader") {
+    artifacts.add(
+        GitHubArtifact.release("Xpdustry", "ModLoaderPlugin", "v1.0.1", "ModLoaderPlugin.jar")
+    )
+}
+
+val downloadModDependencies = tasks.create<GitHubDownload>("downloadModDependencies") {
+    artifacts.add(
+        GitHubArtifact.release("Xpdustry", "Distributor", "v2.6.1", "distributor-core.jar")
+    )
+}
+
+val copyModLoader = tasks.create<Copy>("copyModLoader") {
+    from(downloadModLoader)
+    into(tasks.runMindustryServer.get().workingDir.dir("config/mods"))
+}
+
+tasks.runMindustryServer {
+    dependsOn(copyModLoader)
+    modsPath.set("mod-loader")
+    mods.setFrom(downloadModDependencies)
+}
+
 // Required by the GitHub actions
 tasks.create("getArtifactPath") {
     doLast { println(tasks.shadowJar.get().archiveFile.get().toString()) }
+}
+
+// It does not need the plugin
+tasks.runMindustryClient {
+    mods.setFrom()
 }
 
 val relocate = tasks.create<ConfigureShadowRelocation>("relocateShadowJar") {

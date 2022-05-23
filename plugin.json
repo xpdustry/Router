@@ -8,5 +8,8 @@
   "hidden": true,
   "java": true,
   "main": "fr.xpdustry.router.RouterPlugin",
-  "repo": "Xpdustry/Router"
+  "repo": "Xpdustry/Router",
+  "dependencies": [
+    "xpdustry-distributor-core"
+  ]
 }
