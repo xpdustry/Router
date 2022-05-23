@@ -1,57 +1,37 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
-import fr.xpdustry.toxopid.extension.MindustryRepository
-import fr.xpdustry.toxopid.extension.ModTarget
-import fr.xpdustry.toxopid.extension.ModDependency
+import fr.xpdustry.toxopid.ModPlatform
 import fr.xpdustry.toxopid.util.ModMetadata
+import fr.xpdustry.toxopid.util.anukenJitpack
+import fr.xpdustry.toxopid.util.mindustryDependencies
 import net.ltgt.gradle.errorprone.CheckSeverity
 import net.ltgt.gradle.errorprone.errorprone
-import org.cadixdev.gradle.licenser.header.HeaderStyle
 
 plugins {
     id("net.kyori.indra") version "2.1.1"
     id("net.kyori.indra.publishing") version "2.1.1"
     id("net.kyori.indra.license-header") version "2.1.1"
     id("net.ltgt.errorprone") version "2.0.2"
-    id("fr.xpdustry.toxopid") version "1.3.2"
-    id("com.github.ben-manes.versions") version "0.42.0"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("fr.xpdustry.toxopid") version "2.0.0"
 }
 
-val metadata = ModMetadata(file("${rootProject.rootDir}/plugin.json"))
+val metadata = ModMetadata.fromJson(file("plugin.json"))
 group = property("props.project-group").toString()
+description = metadata.description
 version = metadata.version
 
 toxopid {
-    modTarget.set(ModTarget.HEADLESS)
-    arcCompileVersion.set("v" + metadata.minGameVersion)
-    mindustryCompileVersion.set("v" + metadata.minGameVersion)
-
-    /*
-    mindustryRepository.set(MindustryRepository.BE)
-    mindustryRuntimeVersion.set("22390")
-
-    modDependencies.set(
-        listOf(
-            ModDependency("Xpdustry/Javelin", "v0.3.1", "Javelin.jar"),
-            ModDependency("Xpdustry/Distributor", "v2.6.1", "distributor-core.jar"),
-            ModDependency("Xpdustry/KotlinRuntimePlugin", "v1.0.0", "xpdustry-kotlin-stdlib.jar")
-        )
-    )
-     */
+    compileVersion.set("v" + metadata.minGameVersion)
+    platforms.add(ModPlatform.HEADLESS)
 }
 
 repositories {
     mavenCentral()
-    maven("https://repo.xpdustry.fr/releases") {
-        name = "xpdustry-releases"
-        mavenContent { releasesOnly() }
-    }
+    anukenJitpack()
 }
 
 dependencies {
-    // compileOnly("fr.xpdustry:javelin:0.3.1")
-    // compileOnly("fr.xpdustry:distributor-core:2.6.1" )
-    // implementation("net.mindustry_ddns:file-store:2.1.0")
-    // implementation("org.aeonbits.owner:owner-java8:1.0.12")
+    mindustryDependencies()
 
     val junit = "5.8.2"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
@@ -89,11 +69,15 @@ val relocate = tasks.create<ConfigureShadowRelocation>("relocateShadowJar") {
 }
 
 tasks.shadowJar {
-    // Run relocation before shadow
+    from(project.file("plugin.json"))
     dependsOn(relocate)
-    // Reduces shadow jar size by removing unused classes
     minimize()
+    from(rootProject.file("LICENSE.md")) {
+        into("META-INF")
+    }
 }
+
+tasks.build.get().dependsOn(tasks.shadowJar)
 
 license {
     header(rootProject.file("LICENSE_HEADER.md"))
@@ -116,8 +100,8 @@ indra {
 
     gpl3OnlyLicense()
 
-    if (metadata.repo != null) {
-        val repo = metadata.repo!!.split("/")
+    if (metadata.repo.isNotBlank()) {
+        val repo = metadata.repo.split("/")
         github(repo[0], repo[1]) {
             ci(true)
             issues(true)

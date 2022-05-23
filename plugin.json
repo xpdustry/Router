@@ -1,7 +1,7 @@
 {
   "name": "xpdustry-router",
   "displayName": "Xpdustry RouterPlugin",
-  "author": "Phinner, Router",
+  "author": "Xpdustry",
   "description": "A Reddit-like server for sharing schematics.",
   "version": "0.1.0-SNAPSHOT",
   "minGameVersion": "126",
