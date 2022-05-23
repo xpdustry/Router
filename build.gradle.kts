@@ -134,7 +134,11 @@ indra {
 
             developers {
                 developer {
-                    id.set(metadata.author)
+                    id.set("Phinner")
+                }
+
+                developer {
+                    id.set("Router")
                 }
             }
         }
