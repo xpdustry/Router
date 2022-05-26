@@ -93,6 +93,20 @@ public final class RouterPlugin extends Plugin {
       }
     });
 
+    // TODO Remove Xpdustry branding when schematics management is finished
+    Events.on(PlayerJoin.class, e -> {
+      if (isActive()) {
+        Call.infoMessage(e.player.con(), """
+          Welcome to [cyan]Xpdustry Router[],
+          A dedicated server for building and sharing [cyan]schematics[].
+          Check out the available commands with [cyan]/help[].
+                                 
+          [gray]> The plugin is still in beta, you can suggest new features in the Xpdustry discord server at [blue]https://discord.xpdustry.fr[].[]
+          """
+        );
+      }
+    });
+
     Events.on(PlayerLeave.class, e -> {
       service.findPlotsByOwner(e.player.uuid()).forEach(Plot::clearData);
       service.findAllPlots().forEach(plot -> plot.removeMember(e.player.uuid()));
@@ -121,7 +135,7 @@ public final class RouterPlugin extends Plugin {
     Gamemode.sandbox.apply(rules);
     rules.modeName = "[orange]Router";
     rules.tags.put(ROUTER_ACTIVE_KEY, "true");
-    rules.unitBuildSpeedMultiplier = Float.MAX_VALUE;
+    rules.unitBuildSpeedMultiplier = Float.MIN_VALUE;
     rules.damageExplosions = false;
     rules.reactorExplosions = false;
     return rules;
