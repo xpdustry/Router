@@ -29,15 +29,15 @@ public final class PlotArea implements Position {
   private final int w;
   private final int h;
 
-  public static PlotArea of(final int x, final int y, final int w, final int h) {
-    return new PlotArea(x, y, w, h);
-  }
-
   private PlotArea(final int x, final int y, final int w, final int h) {
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
+  }
+
+  public static PlotArea of(final int x, final int y, final int w, final int h) {
+    return new PlotArea(x, y, w, h);
   }
 
   public boolean contains(final @NotNull Position position) {

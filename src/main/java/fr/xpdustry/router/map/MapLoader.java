@@ -23,8 +23,8 @@ import mindustry.*;
 import mindustry.maps.*;
 import mindustry.net.*;
 import mindustry.world.*;
-import org.jetbrains.annotations.*;
 import org.jetbrains.annotations.ApiStatus.*;
+import org.jetbrains.annotations.*;
 
 @Experimental
 public final class MapLoader implements AutoCloseable {
@@ -32,7 +32,7 @@ public final class MapLoader implements AutoCloseable {
   private final WorldReloader reloader = new WorldReloader();
 
   public MapLoader() {
-    if(Vars.net.active()) reloader.begin();
+    if (Vars.net.active()) reloader.begin();
   }
 
   public void load(final @NotNull Map map) {

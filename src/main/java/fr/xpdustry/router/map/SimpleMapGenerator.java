@@ -40,9 +40,8 @@ final class SimpleMapGenerator implements MapGenerator {
   private static final int BORDER_SIZE = 1;
 
   private static final int PLOT_TOTAL_SIZE_X = PLOT_SIZE_X + (BORDER_SIZE * 2);
-  private static final int PLOT_TOTAL_SIZE_Y = PLOT_SIZE_Y + (BORDER_SIZE * 2);
-
   private static final int PLOT_QUARTER_SIZE_X = (ROAD_SIZE + PLOT_TOTAL_SIZE_X) * PLOT_QUARTER_X;
+  private static final int PLOT_TOTAL_SIZE_Y = PLOT_SIZE_Y + (BORDER_SIZE * 2);
   private static final int PLOT_QUARTER_SIZE_Y = (ROAD_SIZE + PLOT_TOTAL_SIZE_Y) * PLOT_QUARTER_Y;
 
   private static final Floor BORDER_FLOOR = Blocks.darkPanel1.asFloor();
@@ -52,6 +51,14 @@ final class SimpleMapGenerator implements MapGenerator {
   private final Seq<PlotArea> plots = new Seq<>();
 
   SimpleMapGenerator() {
+  }
+
+  private static void setFloors(int x, int y, int width, int height, final @NotNull Floor floor) {
+    for (int i = x; i < x + width; i++) {
+      for (int j = y; j < y + height; j++) {
+        Vars.world.tile(i, j).setFloor(floor);
+      }
+    }
   }
 
   @Override
@@ -91,14 +98,6 @@ final class SimpleMapGenerator implements MapGenerator {
             setFloors(x + 1, y + 1, PLOT_SIZE_X, PLOT_SIZE_Y, PLOT_FLOOR);       // Internal
           }
         }
-      }
-    }
-  }
-
-  private static void setFloors(int x, int y, int width, int height, final @NotNull Floor floor) {
-    for (int i = x; i < x + width; i++) {
-      for (int j = y; j < y + height; j++) {
-        Vars.world.tile(i, j).setFloor(floor);
       }
     }
   }

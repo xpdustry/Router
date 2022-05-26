@@ -27,15 +27,15 @@ import org.jetbrains.annotations.*;
 public final class Plot {
 
   private final PlotArea area;
-  private @Nullable String owner = null;
   private final Set<String> members = new HashSet<>();
-
-  public static @NotNull Plot of(final @NotNull PlotArea area) {
-    return new Plot(area);
-  }
+  private @Nullable String owner = null;
 
   Plot(final @NotNull PlotArea area) {
     this.area = area;
+  }
+
+  public static @NotNull Plot of(final @NotNull PlotArea area) {
+    return new Plot(area);
   }
 
   public int getId() {
