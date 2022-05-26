@@ -24,8 +24,11 @@ import mindustry.maps.*;
 import mindustry.net.*;
 import mindustry.world.*;
 import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.ApiStatus.*;
 
+@Experimental
 public final class MapLoader implements AutoCloseable {
+
   private final WorldReloader reloader = new WorldReloader();
 
   public MapLoader() {

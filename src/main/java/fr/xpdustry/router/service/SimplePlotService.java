@@ -18,14 +18,8 @@
  */
 package fr.xpdustry.router.service;
 
-import arc.util.*;
-import fr.xpdustry.router.plot.*;
+import fr.xpdustry.router.model.*;
 import java.util.*;
-import mindustry.*;
-import mindustry.gen.*;
-import mindustry.net.*;
-import mindustry.net.Administration.*;
-import mindustry.world.*;
 import org.jetbrains.annotations.*;
 
 final class SimplePlotService implements PlotService {
@@ -38,8 +32,8 @@ final class SimplePlotService implements PlotService {
   }
 
   @Override
-  public @NotNull Optional<Plot> findPlotByOwner(@NotNull String owner) {
-    return plots.stream().filter(p -> owner.equals(p.getOwner())).findAny();
+  public @NotNull Iterable<Plot> findPlotsByOwner(@NotNull String owner) {
+    return plots.stream().filter(p -> owner.equals(p.getOwner())).toList();
   }
 
   @Override
@@ -48,58 +42,16 @@ final class SimplePlotService implements PlotService {
   }
 
   @Override
+  public long countPlotsByOwner(@NotNull String owner) {
+    return plots.stream().filter(p -> owner.equals(p.getOwner())).count();
+  }
+
+  @Override
   public void setPlotAreas(final @NotNull Collection<PlotArea> areas) {
     plots.clear();
     areas.forEach(area -> plots.add(Plot.of(area)));
     if (areas.size() != plots.size()) {
       throw new IllegalStateException("This ain't supposed to happen mate.");
-    }
-  }
-
-  @Override
-  public boolean canModifyTile(final @NotNull Administration.PlayerAction action) {
-    if (action.tile != null) {
-      final var tiles = new ArrayList<Tile>();
-      if (action.type == ActionType.placeBlock && action.block.isMultiblock()) {
-        int size = action.block.size;
-        int offsetX = -(size - 1) / 2;
-        int offsetY = -(size - 1) / 2;
-        for (int dx = 0; dx < size; dx++) {
-          for (int dy = 0; dy < size; dy++) {
-            final var other = Vars.world.tile(action.tile.x + dx + offsetX, action.tile.y + dy + offsetY);
-            if (other != null) tiles.add(other);
-          }
-        }
-      } else {
-        tiles.add(action.tile);
-      }
-
-      return plots.stream()
-        .filter(p -> p.getOwner() != null && (p.getOwner().equals(action.player.uuid()) || p.hasMember(action.player.uuid())))
-        .anyMatch(p -> tiles.stream().allMatch(t -> p.getArea().contains(t)));
-    }
-    return true;
-  }
-
-  @Override
-  public void renderPlots() {
-    for (final var plot : plots) {
-      Call.label(
-        "Plot #" + plot.getId(),
-        1F,
-        plot.getArea().getX() + (plot.getArea().getW() / 2F),
-        plot.getArea().getY() + (plot.getArea().getH() / 2F)
-      );
-
-      final var owner = Groups.player.find(p -> p.uuid().equals(plot.getOwner()));
-      if (owner != null) {
-        Call.label(
-          "[green]" + Strings.stripColors(owner.name()) + "'s plot",
-          1F,
-          plot.getArea().getX() + (plot.getArea().getW() / 2F),
-          plot.getArea().getY() + plot.getArea().getH()
-        );
-      }
     }
   }
 }

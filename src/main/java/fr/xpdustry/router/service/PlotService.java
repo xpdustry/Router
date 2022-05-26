@@ -18,9 +18,8 @@
  */
 package fr.xpdustry.router.service;
 
-import fr.xpdustry.router.plot.*;
+import fr.xpdustry.router.model.*;
 import java.util.*;
-import mindustry.net.Administration.*;
 import org.jetbrains.annotations.*;
 
 public interface PlotService {
@@ -31,13 +30,11 @@ public interface PlotService {
 
   @NotNull Optional<Plot> findPlotById(final int id);
 
-  @NotNull Optional<Plot> findPlotByOwner(final @NotNull String owner);
+  @NotNull Iterable<Plot> findPlotsByOwner(final @NotNull String owner);
 
   @NotNull Iterable<Plot> findAllPlots();
 
+  long countPlotsByOwner(final @NotNull String owner);
+
   void setPlotAreas(final @NotNull Collection<PlotArea> areas);
-
-  boolean canModifyTile(final @NotNull PlayerAction action);
-
-  void renderPlots();
 }

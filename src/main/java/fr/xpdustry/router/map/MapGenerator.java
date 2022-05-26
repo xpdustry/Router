@@ -19,7 +19,7 @@
 package fr.xpdustry.router.map;
 
 import arc.func.*;
-import fr.xpdustry.router.plot.*;
+import fr.xpdustry.router.model.*;
 import java.util.*;
 import mindustry.world.*;
 import org.jetbrains.annotations.*;

@@ -20,37 +20,81 @@ package fr.xpdustry.router;
 
 import arc.*;
 import arc.util.*;
-import fr.xpdustry.router.graphics.*;
+import fr.xpdustry.router.command.*;
 import fr.xpdustry.router.map.*;
-import fr.xpdustry.router.plot.*;
+import fr.xpdustry.router.model.*;
 import fr.xpdustry.router.service.*;
 import java.util.*;
+import java.util.stream.*;
 import mindustry.*;
 import mindustry.game.*;
 import mindustry.game.EventType.*;
 import mindustry.gen.*;
 import mindustry.mod.*;
+import mindustry.net.Administration.*;
+import mindustry.world.*;
 import org.jetbrains.annotations.*;
-import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings({"unused", "NullAway.Init"})
+@SuppressWarnings("unused")
 public final class RouterPlugin extends Plugin {
 
   private static final String ROUTER_ACTIVE_KEY = "xpdustry-router:active";
 
   private final PlotService service = PlotService.simple();
   private final Interval timer = new Interval();
+  private final RouterCommand command = new VanillaRouterCommand(service);
 
   @Override
   public void init() {
-    Vars.netServer.admins.addActionFilter(action -> !isActive() || service.canModifyTile(action));
+    Vars.netServer.admins.addActionFilter(action -> {
+      if (isActive() && action.tile != null) {
+        final var tiles = new ArrayList<Tile>();
+        if (action.type == ActionType.placeBlock && action.block.isMultiblock()) {
+          int size = action.block.size;
+          int offsetX = -(size - 1) / 2;
+          int offsetY = -(size - 1) / 2;
+          for (int dx = 0; dx < size; dx++) {
+            for (int dy = 0; dy < size; dy++) {
+              final var other = Vars.world.tile(action.tile.x + dx + offsetX, action.tile.y + dy + offsetY);
+              if (other != null) tiles.add(other);
+            }
+          }
+        } else {
+          tiles.add(action.tile);
+        }
+
+        return StreamSupport.stream(service.findAllPlots().spliterator(), false)
+          .filter(p -> p.getOwner() != null && (p.getOwner().equals(action.player.uuid()) || p.hasMember(action.player.uuid())))
+          .anyMatch(p -> tiles.stream().allMatch(t -> p.getArea().contains(t)));
+      }
+      return true;
+    });
 
     Events.run(Trigger.update, () -> {
-      if (isActive() && timer.get(Time.toSeconds)) service.renderPlots();
+      if (isActive() && timer.get(Time.toSeconds)) {
+        for (final var plot : service.findAllPlots()) {
+          Call.label(
+            "Plot #" + plot.getId(),
+            1F,
+            plot.getArea().getX() + (plot.getArea().getW() / 2F),
+            plot.getArea().getY() + (plot.getArea().getH() / 2F)
+          );
+
+          final var owner = Groups.player.find(p -> p.uuid().equals(plot.getOwner()));
+          if (owner != null) {
+            Call.label(
+              "[green]" + Strings.stripColors(owner.name()) + "'s plot",
+              1F,
+              plot.getArea().getX() + (plot.getArea().getW() / 2F),
+              plot.getArea().getY() + plot.getArea().getH()
+            );
+          }
+        }
+      }
     });
 
     Events.on(PlayerLeave.class, e -> {
-      service.findPlotByOwner(e.player.uuid()).ifPresent(Plot::reset);
+      service.findPlotsByOwner(e.player.uuid()).forEach(Plot::reset);
       service.findAllPlots().forEach(plot -> plot.removeMember(e.player.uuid()));
     });
   }
@@ -61,11 +105,7 @@ public final class RouterPlugin extends Plugin {
       try (final var loader = new MapLoader()) {
         final var generator = MapGenerator.simple();
         loader.generate(generator.getMapWidth(), generator.getMapHeight(), generator);
-
-        Gamemode.sandbox.apply(Vars.state.rules);
-        Vars.state.rules.modeName = "[orange]Router";
-        Vars.state.rules.tags.put(ROUTER_ACTIVE_KEY, "true");
-
+        Vars.state.rules = createRouterRules();
         service.setPlotAreas(generator.getPlots());
       }
     });
@@ -73,108 +113,21 @@ public final class RouterPlugin extends Plugin {
 
   @Override
   public void registerClientCommands(CommandHandler handler) {
-    handler.<Player>register("router-claim", "<id>", "Claim a plot.", (args, player) -> {
-      if (service.findPlotByOwner(player.uuid()).isPresent()) {
-        player.sendMessage("You already own a plot, revoke it first");
-        return;
-      }
+    command.registerCommands(handler);
+  }
 
-      service.findPlotById(Strings.parseInt(args[0], -1)).ifPresentOrElse(
-        plot -> {
-          if (isPlayerOnline(plot.getOwner())) {
-            player.sendMessage("You can't claim this plot, it belongs someone online.");
-          } else {
-            plot.reset();
-            plot.setOwner(player.uuid());
-            player.sendMessage("You claimed the plot #" + plot.getId());
-          }
-        },
-        () -> player.sendMessage("The id is invalid.")
-      );
-    });
-
-    handler.<Player>register("router-revoke", "Revoke your current plot.", (args, player) -> {
-      service.findPlotByOwner(player.uuid()).ifPresentOrElse(
-        plot -> {
-          plot.reset();
-          player.sendMessage("You revoked the plot #" + plot.getId());
-        },
-        () -> player.sendMessage("You don't have a plot.")
-      );
-    });
-
-    handler.<Player>register("router-members", "List the members of your plot.", (args, player) -> {
-      service.findPlotByOwner(player.uuid()).ifPresentOrElse(
-        plot -> {
-          final var builder = new StringBuilder();
-          builder.append("Plot Members :");
-          if (plot.getMembers().isEmpty()) {
-            builder.append("\n[orange]No bitches ?");
-          } else {
-            plot.getMembers().forEach(member -> {
-              builder.append("\n[orange] - [white]").append(Vars.netServer.admins.getInfo(member).lastName);
-            });
-          }
-          player.sendMessage(builder.toString());
-        },
-        () -> player.sendMessage("You don't have a plot.")
-      );
-    });
-
-    handler.<Player>register("router-members-add", "<name>", "Add a an online player to your plot.", (args, player) -> {
-      service.findPlotByOwner(player.uuid()).ifPresentOrElse(
-        plot -> {
-          findPlayerByName(args[0]).ifPresentOrElse(
-            member -> {
-              if (member.uuid().equals(player.uuid())) {
-                player.sendMessage("You can't add yourself >:(");
-              } else {
-                plot.addMember(member.uuid());
-                player.sendMessage("Added " + member.name());
-              }
-            },
-            () -> player.sendMessage("Player not found.")
-          );
-        },
-        () -> player.sendMessage("You don't have a plot.")
-      );
-    });
-
-    handler.<Player>register("router-members-remove", "<name>", "Remove a member from your plot.", (args, player) -> {
-      service.findPlotByOwner(player.uuid()).ifPresentOrElse(
-        plot -> {
-          findPlayerByName(args[0]).ifPresentOrElse(
-            member -> {
-              if (member.uuid().equals(player.uuid())) {
-                player.sendMessage("You can't remove yourself >:(");
-              } else {
-                plot.removeMember(member.uuid());
-                player.sendMessage("Removed " + member.name());
-              }
-            },
-            () -> player.sendMessage("Player not found.")
-          );
-        },
-        () -> player.sendMessage("You don't have a plot.")
-      );
-    });
+  private @NotNull Rules createRouterRules() {
+    final var rules = new Rules();
+    Gamemode.sandbox.apply(rules);
+    rules.modeName = "[orange]Router";
+    rules.tags.put(ROUTER_ACTIVE_KEY, "true");
+    rules.unitBuildSpeedMultiplier = Float.MAX_VALUE;
+    rules.damageExplosions = false;
+    rules.reactorExplosions = false;
+    return rules;
   }
 
   private boolean isActive() {
-    return Vars.state.isPlaying() && Vars.state.rules.tags.getBool(ROUTER_ACTIVE_KEY) && !Vars.state.gameOver;
-  }
-
-  private Optional<Player> findPlayerByUuid(final @Nullable String uuid) {
-    return Optional.ofNullable(Groups.player.find(p -> p.uuid().equals(uuid)));
-  }
-
-  private boolean isPlayerOnline(final @Nullable String uuid) {
-    return findPlayerByUuid(uuid).isPresent();
-  }
-
-  private Optional<Player> findPlayerByName(final @Nullable String name) {
-    return Optional.ofNullable(
-      Groups.player.find(p -> Strings.stripColors(p.name()).equals(name) || Strings.stripColors(Vars.netServer.admins.getInfo(p.uuid()).lastName).equals(name))
-    );
+    return Vars.state.isPlaying() && Vars.state.rules.tags.getBool(ROUTER_ACTIVE_KEY);
   }
 }

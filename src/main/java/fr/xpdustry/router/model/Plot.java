@@ -16,10 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package fr.xpdustry.router.plot;
+package fr.xpdustry.router.model;
 
 import arc.math.geom.*;
 import java.util.*;
+import mindustry.gen.*;
 import org.jetbrains.annotations.*;
 
 public final class Plot {
@@ -46,6 +47,10 @@ public final class Plot {
 
   public void setOwner(final @Nullable String owner) {
     this.owner = owner;
+  }
+
+  public boolean isOwner(final @NotNull Player player) {
+    return player.uuid().equals(owner);
   }
 
   public @NotNull PlotArea getArea() {
