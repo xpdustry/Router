@@ -38,7 +38,8 @@ repositories {
 
 dependencies {
     mindustryDependencies()
-    compileOnly("fr.xpdustry:distributor-core:2.6.1")
+    // implementation("com.google.code.gson:gson:2.9.0")
+    // compileOnly("fr.xpdustry:distributor-core:2.6.1")
 
     val junit = "5.8.2"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
@@ -65,6 +66,7 @@ tasks.withType(JavaCompile::class.java).configureEach {
     }
 }
 
+/*
 val downloadModLoader = tasks.create<GitHubDownload>("downloadModLoader") {
     artifacts.add(
         GitHubArtifact.release("Xpdustry", "ModLoaderPlugin", "v1.0.1", "ModLoaderPlugin.jar")
@@ -87,15 +89,16 @@ tasks.runMindustryServer {
     modsPath.set("mod-loader")
     mods.setFrom(downloadModDependencies)
 }
-
-// Required by the GitHub actions
-tasks.create("getArtifactPath") {
-    doLast { println(tasks.shadowJar.get().archiveFile.get().toString()) }
-}
+ */
 
 // It does not need the plugin
 tasks.runMindustryClient {
     mods.setFrom()
+}
+
+// Required by the GitHub actions
+tasks.create("getArtifactPath") {
+    doLast { println(tasks.shadowJar.get().archiveFile.get().toString()) }
 }
 
 val relocate = tasks.create<ConfigureShadowRelocation>("relocateShadowJar") {

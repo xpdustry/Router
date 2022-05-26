@@ -9,7 +9,5 @@
   "java": true,
   "main": "fr.xpdustry.router.RouterPlugin",
   "repo": "Xpdustry/Router",
-  "dependencies": [
-    "xpdustry-distributor-core"
-  ]
+  "dependencies": []
 }
