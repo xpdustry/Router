@@ -20,6 +20,7 @@ package fr.xpdustry.router.model;
 
 import arc.math.geom.*;
 import java.util.*;
+import mindustry.*;
 import mindustry.gen.*;
 import org.jetbrains.annotations.*;
 
@@ -73,8 +74,14 @@ public final class Plot {
     members.remove(member);
   }
 
-  public void reset() {
+  public void clearData() {
     owner = null;
     members.clear();
+  }
+
+  public void clearArea() {
+    Vars.world.tiles.forEach(t -> {
+      if (area.contains(t) && t.build != null) t.build.kill();
+    });
   }
 }

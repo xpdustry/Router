@@ -36,7 +36,8 @@ public final class VanillaRouterCommand implements RouterCommand {
       } else if (isPlayerOnline(plot.getOwner())) {
         player.sendMessage("You can't claim this plot, it belongs someone online.");
       } else {
-        plot.reset();
+        plot.clearData();
+        plot.clearArea();
         plot.setOwner(player.uuid());
         player.sendMessage("You claimed the plot #" + plot.getId());
       }
@@ -49,7 +50,7 @@ public final class VanillaRouterCommand implements RouterCommand {
       } else if (!plot.isOwner(player)) {
         player.sendMessage("You don't own the plot #" + args[0] + ".");
       } else {
-        plot.reset();
+        plot.clearData();
         player.sendMessage("You revoked the plot #" + plot.getId() + ".");
       }
     });
@@ -116,7 +117,6 @@ public final class VanillaRouterCommand implements RouterCommand {
       }
     });
   }
-
 
   private Optional<Player> findPlayerByUuid(final @Nullable String uuid) {
     return Optional.ofNullable(Groups.player.find(p -> p.uuid().equals(uuid)));

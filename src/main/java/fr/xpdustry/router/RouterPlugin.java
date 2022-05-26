@@ -94,7 +94,7 @@ public final class RouterPlugin extends Plugin {
     });
 
     Events.on(PlayerLeave.class, e -> {
-      service.findPlotsByOwner(e.player.uuid()).forEach(Plot::reset);
+      service.findPlotsByOwner(e.player.uuid()).forEach(Plot::clearData);
       service.findAllPlots().forEach(plot -> plot.removeMember(e.player.uuid()));
     });
   }
