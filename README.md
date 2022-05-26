@@ -24,3 +24,9 @@ A.
 ## Running
 
 This plugin runs on Java 17 and is compatible with Mindustry V6 and V7.
+
+## TODO
+
+- [X] Base plot management
+
+- [ ] Schematics management
