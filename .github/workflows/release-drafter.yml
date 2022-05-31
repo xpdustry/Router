@@ -18,11 +18,6 @@ jobs:
         run: |
           branch=${GITHUB_REF#refs/heads/}
           tag=$(git tag -l --merged "$branch" "v*.*.*" --sort=-committerdate | head -n 1);
-          if [ -z "$tag" ];
-          then
-              # https://stackoverflow.com/a/5189296
-              tag=$(git rev-list --max-parents=0 HEAD)
-          fi
           echo "::set-output name=tag::$tag";
 
       - name: Generate Changelog
