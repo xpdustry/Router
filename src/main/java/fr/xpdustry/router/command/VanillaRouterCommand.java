@@ -134,6 +134,18 @@ public final class VanillaRouterCommand implements RouterCommand {
         }
       }
     });
+
+    handler.<Player>register("router-clear", "<id>", "Clear a plot.", (args, player) -> {
+      final var plot = service.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
+      if (plot == null) {
+        player.sendMessage("The id is invalid.");
+      } else if (!plot.isOwner(player)) {
+        player.sendMessage("You don't own the plot #" + args[0] + ".");
+      } else {
+        plot.clearArea();
+        player.sendMessage("You cleared the plot #" + plot.getId());
+      }
+    });
   }
 
   private Optional<Player> findPlayerByUuid(final @Nullable String uuid) {
