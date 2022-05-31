@@ -32,7 +32,7 @@ final class SimplePlotService implements PlotService {
   }
 
   @Override
-  public @NotNull Iterable<Plot> findPlotsByOwner(@NotNull String owner) {
+  public @NotNull Iterable<Plot> findPlotsByOwner(final @NotNull String owner) {
     return plots.stream().filter(p -> owner.equals(p.getOwner())).toList();
   }
 
@@ -42,7 +42,7 @@ final class SimplePlotService implements PlotService {
   }
 
   @Override
-  public long countPlotsByOwner(@NotNull String owner) {
+  public long countPlotsByOwner(final @NotNull String owner) {
     return plots.stream().filter(p -> owner.equals(p.getOwner())).count();
   }
 

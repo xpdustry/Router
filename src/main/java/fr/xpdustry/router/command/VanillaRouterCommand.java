@@ -24,11 +24,10 @@ import java.util.*;
 import java.util.stream.*;
 import mindustry.*;
 import mindustry.gen.*;
-import org.jetbrains.annotations.ApiStatus.*;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.Nullable;
 
-@Internal
+@ApiStatus.Internal
 public final class VanillaRouterCommand implements RouterCommand {
 
   private static final long MAX_OWNED_PLOTS = 1;
@@ -39,7 +38,7 @@ public final class VanillaRouterCommand implements RouterCommand {
   }
 
   @Override
-  public void registerCommands(@NotNull CommandHandler handler) {
+  public void registerCommands(final @NotNull CommandHandler handler) {
     handler.<Player>register("router-claim", "<id>", "Claim a plot.", (args, player) -> {
       if (service.countPlotsByOwner(player.uuid()) == MAX_OWNED_PLOTS) {
         player.sendMessage("The maximum number of owned plots is " + MAX_OWNED_PLOTS + ", revoke one if you want to claim a new one.");
@@ -55,7 +54,6 @@ public final class VanillaRouterCommand implements RouterCommand {
         player.sendMessage("You can't claim this plot, it belongs someone online.");
       } else {
         plot.clearData();
-        plot.clearArea();
         plot.setOwner(player.uuid());
         player.sendMessage("You claimed the plot #" + plot.getId());
       }
@@ -159,7 +157,7 @@ public final class VanillaRouterCommand implements RouterCommand {
   /**
    * El famoso findp.
    */
-  private List<Player> findPlayersByName(final @NotNull String name) {
+  private List<Player> findPlayersByName(final String name) {
     return StreamSupport.stream(Groups.player.spliterator(), false)
       .filter(p -> Strings.stripColors(p.name()).contains(name))
       .toList();

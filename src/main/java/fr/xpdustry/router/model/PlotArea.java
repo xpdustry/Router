@@ -40,11 +40,12 @@ public final class PlotArea implements Position {
     return new PlotArea(x, y, w, h);
   }
 
+  public boolean contains(final float x, final float y) {
+    return getX() <= x && getX() + getW() > x && getY() <= y && getY() + getH() > y;
+  }
+
   public boolean contains(final @NotNull Position position) {
-    return getX() <= position.getX()
-      && getX() + getW() > position.getX()
-      && getY() <= position.getY()
-      && getY() + getH() > position.getY();
+    return contains(position.getX(), position.getY());
   }
 
   public int getTileX() {

@@ -64,7 +64,7 @@ public final class RouterPlugin extends Plugin {
         }
 
         return StreamSupport.stream(service.findAllPlots().spliterator(), false)
-          .filter(p -> p.getOwner() != null && (p.getOwner().equals(action.player.uuid()) || p.hasMember(action.player.uuid())))
+          .filter(p -> p.getOwner() != null && (p.isOwner(action.player) || p.hasMember(action.player.uuid())))
           .anyMatch(p -> tiles.stream().allMatch(t -> p.getArea().contains(t)));
       }
       return true;
@@ -126,7 +126,7 @@ public final class RouterPlugin extends Plugin {
   }
 
   @Override
-  public void registerClientCommands(CommandHandler handler) {
+  public void registerClientCommands(final @NotNull CommandHandler handler) {
     command.registerCommands(handler);
   }
 

@@ -26,7 +26,7 @@ import org.jetbrains.annotations.*;
 
 public interface MapGenerator extends Cons<Tiles> {
 
-  static MapGenerator simple() {
+  static @NotNull MapGenerator simple() {
     return new SimpleMapGenerator();
   }
 
