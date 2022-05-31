@@ -6,7 +6,7 @@
 
 ## Description
 
-A.
+A plugin for building and sharing schematics in a dedicated server.
 
 ## Building
 
