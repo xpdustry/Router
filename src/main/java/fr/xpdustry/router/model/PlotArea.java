@@ -19,7 +19,12 @@
 package fr.xpdustry.router.model;
 
 import arc.math.geom.*;
+import arc.struct.*;
+import java.util.*;
 import mindustry.*;
+import mindustry.game.*;
+import mindustry.game.Schematic.*;
+import mindustry.world.blocks.ConstructBlock.*;
 import org.jetbrains.annotations.*;
 
 public final class PlotArea implements Position {
@@ -80,5 +85,52 @@ public final class PlotArea implements Position {
 
   public float getH() {
     return h * Vars.tilesize;
+  }
+
+  public @Nullable Schematic toSchematic() {
+    int x1 = Integer.MAX_VALUE;
+    int y1 = Integer.MAX_VALUE;
+    int x2 = Integer.MIN_VALUE;
+    int y2 = Integer.MIN_VALUE;
+    var empty = true;
+
+    for (int tx = getTileX(); tx < getTileX() + getTileW(); tx++) {
+      for (int ty = getTileY(); ty < getTileY() + getTileH(); ty++) {
+        final var build = Vars.world.build(tx, ty);
+
+        if (build != null) {
+          final var block = build instanceof ConstructBuild cons ? cons.cblock : build.block;
+          final int top = block.size / 2;
+          final int bot = block.size % 2 == 1 ? -block.size / 2 : -(block.size - 1) / 2;
+
+          x1 = Math.min(build.tileX() + bot, x1);
+          y1 = Math.min(build.tileY() + bot, y1);
+          x2 = Math.max(build.tileX() + top, x2);
+          y2 = Math.max(build.tileY() + top, y2);
+          empty = false;
+        }
+      }
+    }
+
+    if (empty) {
+      return null;
+    } else {
+      final var counted = new IntSet();
+      final var tiles = new ArrayList<Stile>();
+
+      for (int x = getTileX(); x < getTileX() + getTileW(); x++) {
+        for (int y = getTileY(); y < getTileY() + getTileH(); y++) {
+          final var build = Vars.world.build(x, y);
+
+          if (build != null && !counted.contains(build.pos())) {
+            final var block = build instanceof ConstructBuild cons ? cons.cblock : build.block;
+            final var config = build instanceof ConstructBuild cons ? cons.lastConfig : build.config();
+            tiles.add(new Stile(block, build.tileX() - x1, build.tileY() - y1, config, (byte)build.rotation));
+            counted.add(build.pos());
+          }
+        }
+      }
+      return new Schematic(Seq.with(tiles), new StringMap(), x2 - x1 + 1, y2 - y1 + 1);
+    }
   }
 }
