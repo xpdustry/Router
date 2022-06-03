@@ -30,9 +30,9 @@ public interface PlotService {
 
   @NotNull Optional<Plot> findPlotById(final int id);
 
-  @NotNull Iterable<Plot> findPlotsByOwner(final @NotNull String owner);
+  @NotNull List<Plot> findPlotsByOwner(final @NotNull String owner);
 
-  @NotNull Iterable<Plot> findAllPlots();
+  @NotNull List<Plot> findAllPlots();
 
   long countPlotsByOwner(final @NotNull String owner);
 

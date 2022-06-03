@@ -51,11 +51,10 @@ public final class RouterPlugin extends Plugin {
         final var tiles = new ArrayList<Tile>();
         if (action.type == ActionType.placeBlock && action.block.isMultiblock()) {
           int size = action.block.size;
-          int offsetX = -(size - 1) / 2;
-          int offsetY = -(size - 1) / 2;
+          int offset = -(size - 1) / 2;
           for (int dx = 0; dx < size; dx++) {
             for (int dy = 0; dy < size; dy++) {
-              final var other = Vars.world.tile(action.tile.x + dx + offsetX, action.tile.y + dy + offsetY);
+              final var other = Vars.world.tile(action.tile.x + dx + offset, action.tile.y + dy + offset);
               if (other != null) tiles.add(other);
             }
           }
@@ -63,7 +62,7 @@ public final class RouterPlugin extends Plugin {
           tiles.add(action.tile);
         }
 
-        return StreamSupport.stream(service.findAllPlots().spliterator(), false)
+        return service.findAllPlots().stream()
           .filter(p -> p.getOwner() != null && (p.isOwner(action.player) || p.hasMember(action.player.uuid())))
           .anyMatch(p -> tiles.stream().allMatch(t -> p.getArea().contains(t)));
       }

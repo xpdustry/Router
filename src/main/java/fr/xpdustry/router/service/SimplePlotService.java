@@ -32,13 +32,13 @@ final class SimplePlotService implements PlotService {
   }
 
   @Override
-  public @NotNull Iterable<Plot> findPlotsByOwner(final @NotNull String owner) {
+  public @NotNull List<Plot> findPlotsByOwner(final @NotNull String owner) {
     return plots.stream().filter(p -> owner.equals(p.getOwner())).toList();
   }
 
   @Override
-  public @NotNull Iterable<Plot> findAllPlots() {
-    return Collections.unmodifiableCollection(plots);
+  public @NotNull List<Plot> findAllPlots() {
+    return plots.stream().toList();
   }
 
   @Override
