@@ -16,27 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package fr.xpdustry.router.service;
+package fr.xpdustry.router.exception;
 
 import fr.xpdustry.router.model.*;
-import java.util.*;
+import java.io.*;
 import org.jetbrains.annotations.*;
 
-public interface PlotService {
+public class InvalidPlotException extends Exception {
 
-  static @NotNull PlotService simple() {
-    return new SimplePlotService();
+  @Serial
+  private static final long serialVersionUID = -1671640589672425282L;
+
+  private final Plot plot;
+
+  public InvalidPlotException(final @NotNull String reason, final @NotNull Plot plot) {
+    super(reason);
+    this.plot = plot;
   }
 
-  @NotNull Optional<Plot> findPlotById(final int id);
-
-  @NotNull List<Plot> findPlotsByOwner(final @NotNull String owner);
-
-  @NotNull List<Plot> findAllPlots();
-
-  long countPlots();
-
-  long countPlotsByOwner(final @NotNull String owner);
-
-  void setPlotAreas(final @NotNull Collection<PlotArea> areas);
+  public @NotNull Plot getPlot() {
+    return plot;
+  }
 }

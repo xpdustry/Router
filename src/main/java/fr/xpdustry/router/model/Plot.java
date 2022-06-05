@@ -29,6 +29,8 @@ public final class Plot {
   private final PlotArea area;
   private final Set<String> members = new HashSet<>();
   private @Nullable String owner = null;
+  private @Nullable String lastOwner = null;
+  private @Nullable PlotSchematic placeHolder = null;
 
   Plot(final @NotNull PlotArea area) {
     this.area = area;
@@ -47,7 +49,16 @@ public final class Plot {
   }
 
   public void setOwner(final @Nullable String owner) {
+    this.lastOwner = this.owner;
     this.owner = owner;
+  }
+
+  public @Nullable String getLastOwner() {
+    return lastOwner;
+  }
+
+  public void setLastOwner(final @Nullable String lastOwner) {
+    this.lastOwner = lastOwner;
   }
 
   public boolean isOwner(final @NotNull Player player) {
@@ -75,7 +86,8 @@ public final class Plot {
   }
 
   public void clearData() {
-    owner = null;
+    setOwner(null);
+    setPlaceHolder(null);
     members.clear();
   }
 
@@ -83,5 +95,13 @@ public final class Plot {
     Vars.world.tiles.forEach(t -> {
       if (area.contains(t) && t.build != null) t.build.kill();
     });
+  }
+
+  public @Nullable PlotSchematic getPlaceHolder() {
+    return placeHolder;
+  }
+
+  public void setPlaceHolder(final @Nullable PlotSchematic placeHolder) {
+    this.placeHolder = placeHolder;
   }
 }

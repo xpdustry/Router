@@ -19,13 +19,15 @@
 package fr.xpdustry.router;
 
 import arc.*;
+import arc.struct.*;
 import arc.util.*;
 import fr.xpdustry.router.command.*;
 import fr.xpdustry.router.map.*;
 import fr.xpdustry.router.model.*;
+import fr.xpdustry.router.repository.*;
 import fr.xpdustry.router.service.*;
+import java.io.*;
 import java.util.*;
-import java.util.stream.*;
 import mindustry.*;
 import mindustry.game.EventType.*;
 import mindustry.game.*;
@@ -40,9 +42,12 @@ public final class RouterPlugin extends Plugin {
 
   private static final String ROUTER_ACTIVE_KEY = "xpdustry-router:active";
 
-  private final PlotService service = PlotService.simple();
+  private final PlotService plots = PlotService.simple();
   private final Interval timer = new Interval();
-  private final RouterCommand command = new VanillaRouterCommand(service);
+  private final SchematicService schematics = SchematicService.simple(
+    SchematicRepository.of(new File("./schematics.sqlite"))
+  );
+  private final RouterCommand command = new VanillaRouterCommand(plots, schematics);
 
   @Override
   public void init() {
@@ -62,7 +67,7 @@ public final class RouterPlugin extends Plugin {
           tiles.add(action.tile);
         }
 
-        return service.findAllPlots().stream()
+        return plots.findAllPlots().stream()
           .filter(p -> p.getOwner() != null && (p.isOwner(action.player) || p.hasMember(action.player.uuid())))
           .anyMatch(p -> tiles.stream().allMatch(t -> p.getArea().contains(t)));
       }
@@ -71,7 +76,7 @@ public final class RouterPlugin extends Plugin {
 
     Events.run(Trigger.update, () -> {
       if (isActive() && timer.get(Time.toSeconds)) {
-        for (final var plot : service.findAllPlots()) {
+        for (final var plot : plots.findAllPlots()) {
           Call.label(
             "Plot #" + plot.getId(),
             1F,
@@ -79,10 +84,23 @@ public final class RouterPlugin extends Plugin {
             plot.getArea().getY() + (plot.getArea().getH() / 2F)
           );
 
-          final var owner = Groups.player.find(p -> p.uuid().equals(plot.getOwner()));
-          if (owner != null) {
+          if (plot.getPlaceHolder() != null) {
             Call.label(
-              "[green]" + Strings.stripColors(owner.name()) + "'s plot",
+              "[yellow]" + Strings.stripColors(Vars.netServer.admins.getInfo(plot.getPlaceHolder().getAuthor()).lastName) + "'s schematic",
+              1F,
+              plot.getArea().getX() + (plot.getArea().getW() / 2F),
+              plot.getArea().getY()
+            );
+          } else if (plot.getOwner() != null) {
+            Call.label(
+              "[green]" + Strings.stripColors(Vars.netServer.admins.getInfo(plot.getOwner()).lastName) + "'s plot",
+              1F,
+              plot.getArea().getX() + (plot.getArea().getW() / 2F),
+              plot.getArea().getY() + plot.getArea().getH()
+            );
+          } else if (plot.getLastOwner() != null) {
+            Call.label(
+              "[gray]" + Strings.stripColors(Vars.netServer.admins.getInfo(plot.getLastOwner()).lastName) + "'s build",
               1F,
               plot.getArea().getX() + (plot.getArea().getW() / 2F),
               plot.getArea().getY() + plot.getArea().getH()
@@ -107,8 +125,8 @@ public final class RouterPlugin extends Plugin {
     });
 
     Events.on(PlayerLeave.class, e -> {
-      service.findPlotsByOwner(e.player.uuid()).forEach(Plot::clearData);
-      service.findAllPlots().forEach(plot -> plot.removeMember(e.player.uuid()));
+      plots.findPlotsByOwner(e.player.uuid()).forEach(Plot::clearData);
+      plots.findAllPlots().forEach(plot -> plot.removeMember(e.player.uuid()));
     });
   }
 
@@ -119,7 +137,28 @@ public final class RouterPlugin extends Plugin {
         final var generator = MapGenerator.simple();
         loader.generate(generator.getMapWidth(), generator.getMapHeight(), generator);
         Vars.state.rules = createRouterRules();
-        service.setPlotAreas(generator.getPlots());
+        plots.setPlotAreas(generator.getPlots());
+
+        final var placeHolders = schematics.getLatestSchematics(plots.countPlots()).iterator();
+        final var availablePlots = Seq.with(plots.findAllPlots());
+
+        while (placeHolders.hasNext() && !availablePlots.isEmpty()) {
+          final var placeHolder = placeHolders.next();
+          final var plot = availablePlots.random();
+          availablePlots.remove(plot, true);
+
+          if (placeHolder.getSchematic().width <= plot.getArea().getTileW() && placeHolder.getSchematic().height <= plot.getArea().getTileH()) {
+            plot.setPlaceHolder(placeHolder);
+            final var area = plot.getArea();
+            final var x = (area.getTileW() - placeHolder.getSchematic().width) / 2 + area.getTileX();
+            final var y = (area.getTileH() - placeHolder.getSchematic().height) / 2 + area.getTileY();
+            placeHolder.getSchematic().tiles.forEach(stile -> {
+              final var tile = Vars.world.tile(stile.x + x, stile.y + y);
+              Call.setTile(tile, stile.block, Vars.state.rules.defaultTeam, stile.rotation);
+              tile.build.configure(stile.config);
+            });
+          }
+        }
       }
     });
   }

@@ -1,7 +1,7 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+// import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 import fr.xpdustry.toxopid.ModPlatform
-import fr.xpdustry.toxopid.task.GitHubArtifact
-import fr.xpdustry.toxopid.task.GitHubDownload
+// import fr.xpdustry.toxopid.task.GitHubArtifact
+// import fr.xpdustry.toxopid.task.GitHubDownload
 import fr.xpdustry.toxopid.util.ModMetadata
 import fr.xpdustry.toxopid.util.anukenJitpack
 import fr.xpdustry.toxopid.util.mindustryDependencies
@@ -38,6 +38,9 @@ repositories {
 
 dependencies {
     mindustryDependencies()
+    implementation("org.xerial:sqlite-jdbc:3.36.0.3")   // Driver
+    implementation("com.j256.ormlite:ormlite-jdbc:6.1") // ORM
+
     // implementation("com.google.code.gson:gson:2.9.0")
     // compileOnly("fr.xpdustry:distributor-core:2.6.1")
 
@@ -101,15 +104,17 @@ tasks.create("getArtifactPath") {
     doLast { println(tasks.shadowJar.get().archiveFile.get().toString()) }
 }
 
+/*
 val relocate = tasks.create<ConfigureShadowRelocation>("relocateShadowJar") {
     target = tasks.shadowJar.get()
     prefix = project.property("props.root-package").toString() + ".shadow"
 }
+ */
 
 tasks.shadowJar {
     from(project.file("plugin.json"))
-    dependsOn(relocate)
-    minimize()
+    // dependsOn(relocate)
+    // minimize()
     from(rootProject.file("LICENSE.md")) {
         into("META-INF")
     }

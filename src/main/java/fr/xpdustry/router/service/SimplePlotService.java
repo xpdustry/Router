@@ -42,6 +42,11 @@ final class SimplePlotService implements PlotService {
   }
 
   @Override
+  public long countPlots() {
+    return plots.size();
+  }
+
+  @Override
   public long countPlotsByOwner(final @NotNull String owner) {
     return plots.stream().filter(p -> owner.equals(p.getOwner())).count();
   }

@@ -19,6 +19,8 @@
 package fr.xpdustry.router.command;
 
 import arc.util.*;
+import fr.xpdustry.router.exception.*;
+import fr.xpdustry.router.model.*;
 import fr.xpdustry.router.service.*;
 import java.util.*;
 import java.util.stream.*;
@@ -30,22 +32,24 @@ import org.jetbrains.annotations.Nullable;
 @ApiStatus.Internal
 public final class VanillaRouterCommand implements RouterCommand {
 
-  private static final long MAX_OWNED_PLOTS = 1;
-  private final PlotService service;
+  private static final long MAX_OWNED_PLOTS = 2;
+  private final PlotService plots;
+  private final SchematicService schematics;
 
-  public VanillaRouterCommand(final @NotNull PlotService service) {
-    this.service = service;
+  public VanillaRouterCommand(final @NotNull PlotService plots, final @NotNull SchematicService schematics) {
+    this.plots = plots;
+    this.schematics = schematics;
   }
 
   @Override
   public void registerCommands(final @NotNull CommandHandler handler) {
     handler.<Player>register("router-claim", "<id>", "Claim a plot.", (args, player) -> {
-      if (service.countPlotsByOwner(player.uuid()) == MAX_OWNED_PLOTS) {
+      if (plots.countPlotsByOwner(player.uuid()) == MAX_OWNED_PLOTS) {
         player.sendMessage("The maximum number of owned plots is " + MAX_OWNED_PLOTS + ", revoke one if you want to claim a new one.");
         return;
       }
 
-      final var plot = service.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
+      final var plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
       if (plot == null) {
         player.sendMessage("The id is invalid.");
       } else if (plot.isOwner(player)) {
@@ -60,7 +64,7 @@ public final class VanillaRouterCommand implements RouterCommand {
     });
 
     handler.<Player>register("router-revoke", "<id>", "Revoke a plot.", (args, player) -> {
-      final var plot = service.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
+      final var plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
       if (plot == null) {
         player.sendMessage("The id is invalid.");
       } else if (!plot.isOwner(player)) {
@@ -72,7 +76,7 @@ public final class VanillaRouterCommand implements RouterCommand {
     });
 
     handler.<Player>register("router-members", "<id>", "List the members of one of your plot.", (args, player) -> {
-      final var plot = service.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
+      final var plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
       if (plot == null) {
         player.sendMessage("The id is invalid.");
       } else if (!plot.isOwner(player)) {
@@ -92,7 +96,7 @@ public final class VanillaRouterCommand implements RouterCommand {
     });
 
     handler.<Player>register("router-members-add", "<id> <name...>", "Add a an online player to your plot.", (args, player) -> {
-      final var plot = service.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
+      final var plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
       if (plot == null) {
         player.sendMessage("The id is invalid.");
       } else if (!plot.isOwner(player)) {
@@ -113,7 +117,7 @@ public final class VanillaRouterCommand implements RouterCommand {
     });
 
     handler.<Player>register("router-members-remove", "<name>", "Remove a member from your plot.", (args, player) -> {
-      final var plot = service.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
+      final var plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
       if (plot == null) {
         player.sendMessage("The id is invalid.");
       } else if (!plot.isOwner(player)) {
@@ -134,7 +138,7 @@ public final class VanillaRouterCommand implements RouterCommand {
     });
 
     handler.<Player>register("router-clear", "<id>", "Clear a plot.", (args, player) -> {
-      final var plot = service.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
+      final var plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
       if (plot == null) {
         player.sendMessage("The id is invalid.");
       } else if (!plot.isOwner(player)) {
@@ -142,6 +146,20 @@ public final class VanillaRouterCommand implements RouterCommand {
       } else {
         plot.clearArea();
         player.sendMessage("You cleared the plot #" + plot.getId());
+      }
+    });
+
+    handler.<Player>register("router-schematic-publish", "<id>", "Clear a plot.", (args, player) -> {
+      final Plot plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
+      if (plot == null) {
+        player.sendMessage("The id is invalid.");
+      } else {
+        try {
+          schematics.publishSchematic(plot);
+          player.sendMessage("The schematic has been published.");
+        } catch (final InvalidPlotException e) {
+          player.sendMessage(e.getMessage());
+        }
       }
     });
   }

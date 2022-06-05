@@ -18,25 +18,19 @@
  */
 package fr.xpdustry.router.service;
 
+import fr.xpdustry.router.exception.*;
 import fr.xpdustry.router.model.*;
+import fr.xpdustry.router.repository.*;
 import java.util.*;
 import org.jetbrains.annotations.*;
 
-public interface PlotService {
+public interface SchematicService {
 
-  static @NotNull PlotService simple() {
-    return new SimplePlotService();
+  static @NotNull SchematicService simple(final @NotNull SchematicRepository repository) {
+    return new SimpleSchematicService(repository);
   }
 
-  @NotNull Optional<Plot> findPlotById(final int id);
+  void publishSchematic(final @NotNull Plot plot) throws InvalidPlotException;
 
-  @NotNull List<Plot> findPlotsByOwner(final @NotNull String owner);
-
-  @NotNull List<Plot> findAllPlots();
-
-  long countPlots();
-
-  long countPlotsByOwner(final @NotNull String owner);
-
-  void setPlotAreas(final @NotNull Collection<PlotArea> areas);
+  @NotNull List<PlotSchematic> getLatestSchematics(final long number);
 }
