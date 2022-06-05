@@ -1,4 +1,4 @@
-# TemplatePlugin
+# Router
 
 [![Xpdustry latest](https://repo.xpdustry.fr/api/badge/latest/releases/fr/xpdustry/router?color=00FFFF&name=Router&prefix=v)](https://github.com/Xpdustry/Router/releases)
 [![Build status](https://github.com/Xpdustry/Router/actions/workflows/build.yml/badge.svg?branch=master&event=push)](https://github.com/Xpdustry/Router/actions/workflows/build.yml)

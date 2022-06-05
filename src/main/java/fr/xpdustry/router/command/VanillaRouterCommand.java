@@ -149,7 +149,7 @@ public final class VanillaRouterCommand implements RouterCommand {
       }
     });
 
-    handler.<Player>register("router-schematic-publish", "<id>", "Clear a plot.", (args, player) -> {
+    handler.<Player>register("router-schematic-publish", "<id>", "Publish a schematic.", (args, player) -> {
       final Plot plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
       if (plot == null) {
         player.sendMessage("The id is invalid.");
