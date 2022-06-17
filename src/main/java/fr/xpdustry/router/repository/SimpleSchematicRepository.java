@@ -68,8 +68,8 @@ final class SimpleSchematicRepository implements SchematicRepository {
   }
 
   @Override
-  public @NotNull CloseableIterable<PlotSchematic> findAllSchematics() {
-    return dao.getWrappedIterable();
+  public @NotNull Iterable<PlotSchematic> findAllSchematics() {
+    return dao;
   }
 
   @Override

@@ -16,30 +16,41 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package fr.xpdustry.router.exception;
+package fr.xpdustry.router.util;
 
-import fr.xpdustry.router.model.*;
-import java.io.*;
+import arc.math.geom.*;
+import mindustry.*;
 import org.jetbrains.annotations.*;
 
-public class InvalidPlotException extends Exception {
+public final class SimplePosition implements Position {
 
-  @Serial
-  private static final long serialVersionUID = -1671640589672425282L;
+  private final float x;
+  private final float y;
 
-  private final Plot plot;
-
-  public InvalidPlotException(final @NotNull String message, final @NotNull Plot plot) {
-    super(message);
-    this.plot = plot;
+  public static @NotNull SimplePosition of(final float x, final float y) {
+    return new SimplePosition(x, y);
   }
 
-  public InvalidPlotException(final @NotNull String message, final @NotNull Plot plot, final @NotNull Throwable cause) {
-    super(message, cause);
-    this.plot = plot;
+  public static @NotNull SimplePosition of(final int pos) {
+    return of(Point2.unpack(pos));
   }
 
-  public @NotNull Plot getPlot() {
-    return plot;
+  public static @NotNull SimplePosition of(final @NotNull Point2 point) {
+    return new SimplePosition(point.x * Vars.tilesize, point.y * Vars.tilesize);
+  }
+
+  private SimplePosition(final float x, final float y) {
+    this.x = x;
+    this.y = y;
+  }
+
+  @Override
+  public float getX() {
+    return x;
+  }
+
+  @Override
+  public float getY() {
+    return y;
   }
 }

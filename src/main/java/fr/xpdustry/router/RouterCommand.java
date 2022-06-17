@@ -16,34 +16,38 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package fr.xpdustry.router.command;
+package fr.xpdustry.router;
 
+import arc.struct.*;
 import arc.util.*;
 import fr.xpdustry.router.exception.*;
+import fr.xpdustry.router.map.*;
 import fr.xpdustry.router.model.*;
 import fr.xpdustry.router.service.*;
 import java.util.*;
 import java.util.stream.*;
 import mindustry.*;
+import mindustry.game.*;
 import mindustry.gen.*;
-import org.jetbrains.annotations.*;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.*;
 
-@ApiStatus.Internal
-public final class VanillaRouterCommand implements RouterCommand {
+/**
+ * Hides the commands behind a class because I plan to move to Distributor 3.
+ */
+public final class RouterCommand {
 
   private static final long MAX_OWNED_PLOTS = 2;
   private final PlotService plots;
   private final SchematicService schematics;
 
-  public VanillaRouterCommand(final @NotNull PlotService plots, final @NotNull SchematicService schematics) {
+  public RouterCommand(final @NotNull PlotService plots, final @NotNull SchematicService schematics) {
     this.plots = plots;
     this.schematics = schematics;
   }
 
-  @Override
-  public void registerCommands(final @NotNull CommandHandler handler) {
-    handler.<Player>register("router-claim", "<id>", "Claim a plot.", (args, player) -> {
+  public void registerClientCommands(final @NotNull CommandHandler handler) {
+    handler.<Player>register("router-plot-claim", "<id>", "Claim a plot.", (args, player) -> {
       if (plots.countPlotsByOwner(player.uuid()) == MAX_OWNED_PLOTS) {
         player.sendMessage("The maximum number of owned plots is " + MAX_OWNED_PLOTS + ", revoke one if you want to claim a new one.");
         return;
@@ -57,21 +61,46 @@ public final class VanillaRouterCommand implements RouterCommand {
       } else if (isPlayerOnline(plot.getOwner())) {
         player.sendMessage("You can't claim this plot, it belongs someone online.");
       } else {
-        plot.clearData();
         plot.setOwner(player.uuid());
         player.sendMessage("You claimed the plot #" + plot.getId());
       }
     });
 
-    handler.<Player>register("router-revoke", "<id>", "Revoke a plot.", (args, player) -> {
+    handler.<Player>register("router-plot-revoke", "<id>", "Revoke a plot.", (args, player) -> {
       final var plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
       if (plot == null) {
         player.sendMessage("The id is invalid.");
       } else if (!plot.isOwner(player)) {
         player.sendMessage("You don't own the plot #" + args[0] + ".");
       } else {
-        plot.clearData();
+        plot.setOwner(null);
         player.sendMessage("You revoked the plot #" + plot.getId() + ".");
+      }
+    });
+
+    handler.<Player>register("router-plot-clear", "<id>", "Clear a plot.", (args, player) -> {
+      final var plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
+      if (plot == null) {
+        player.sendMessage("The id is invalid.");
+      } else if (!plot.isOwner(player)) {
+        player.sendMessage("You don't own the plot #" + args[0] + ".");
+      } else {
+        plot.getArea().clear();
+        player.sendMessage("You cleared the plot #" + plot.getId());
+      }
+    });
+
+    handler.<Player>register("router-plot-publish", "<id>", "Publish a schematic.", (args, player) -> {
+      final Plot plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
+      if (plot == null) {
+        player.sendMessage("The id is invalid.");
+      } else {
+        try {
+          schematics.publishSchematic(plot);
+          player.sendMessage("The schematic has been published.");
+        } catch (final InvalidPlotException e) {
+          player.sendMessage(e.getMessage());
+        }
       }
     });
 
@@ -136,29 +165,27 @@ public final class VanillaRouterCommand implements RouterCommand {
         }
       }
     });
+  }
 
-    handler.<Player>register("router-clear", "<id>", "Clear a plot.", (args, player) -> {
-      final var plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
-      if (plot == null) {
-        player.sendMessage("The id is invalid.");
-      } else if (!plot.isOwner(player)) {
-        player.sendMessage("You don't own the plot #" + args[0] + ".");
-      } else {
-        plot.clearArea();
-        player.sendMessage("You cleared the plot #" + plot.getId());
-      }
-    });
+  public void registerServerCommands(final @NotNull CommandHandler handler) {
+    handler.register("router", "Begin hosting with the router gamemode.", args -> {
+      try (final var loader = new MapLoader()) {
+        final var generator = PlotMapGenerator.simple();
+        loader.load(generator);
+        Vars.state.rules = createRouterRules();
+        plots.setPlotAreas(generator.getAreas());
 
-    handler.<Player>register("router-schematic-publish", "<id>", "Publish a schematic.", (args, player) -> {
-      final Plot plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
-      if (plot == null) {
-        player.sendMessage("The id is invalid.");
-      } else {
-        try {
-          schematics.publishSchematic(plot);
-          player.sendMessage("The schematic has been published.");
-        } catch (final InvalidPlotException e) {
-          player.sendMessage(e.getMessage());
+        final var placeHolders = schematics.getLatestSchematics(plots.countPlots()).iterator();
+        final var availablePlots = Seq.with(plots.findAllPlots());
+
+        while (placeHolders.hasNext() && !availablePlots.isEmpty()) {
+          final var placeHolder = placeHolders.next();
+          final var plot = availablePlots.random();
+          availablePlots.remove(plot, true);
+
+          if (placeHolder.getSchematic().width <= plot.getArea().getTileW() && placeHolder.getSchematic().height <= plot.getArea().getTileH()) {
+            plot.setPlaceholder(placeHolder);
+          }
         }
       }
     });
@@ -179,5 +206,16 @@ public final class VanillaRouterCommand implements RouterCommand {
     return StreamSupport.stream(Groups.player.spliterator(), false)
       .filter(p -> Strings.stripColors(p.name()).contains(name))
       .toList();
+  }
+
+  private Rules createRouterRules() {
+    final var rules = new Rules();
+    Gamemode.sandbox.apply(rules);
+    rules.modeName = "[orange]Router";
+    rules.tags.put(RouterPlugin.ROUTER_ACTIVE_KEY, "true");
+    rules.unitBuildSpeedMultiplier = Float.MIN_VALUE;
+    rules.damageExplosions = false;
+    rules.reactorExplosions = false;
+    return rules;
   }
 }

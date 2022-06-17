@@ -18,17 +18,15 @@
  */
 package fr.xpdustry.router.map;
 
-import arc.struct.*;
 import fr.xpdustry.router.model.*;
 import java.util.*;
-import mindustry.*;
 import mindustry.content.*;
 import mindustry.game.*;
 import mindustry.world.*;
 import mindustry.world.blocks.environment.*;
 import org.jetbrains.annotations.*;
 
-final class SimpleMapGenerator implements MapGenerator {
+final class SimplePlotMapGenerator implements PlotMapGenerator {
 
   private static final int PLOT_QUARTER_X = 2;
   private static final int PLOT_QUARTER_Y = 2;
@@ -48,56 +46,64 @@ final class SimpleMapGenerator implements MapGenerator {
   private static final Floor PLOT_FLOOR = Blocks.metalFloor3.asFloor();
   private static final Floor ROAD_FLOOR = Blocks.dacite.asFloor();
 
-  private final Seq<PlotArea> plots = new Seq<>();
+  private final List<PlotArea> areas = new ArrayList<>();
+  private final Tiles tiles = new Tiles(PLOT_QUARTER_SIZE_X * 2 + MAIN_ROAD_SIZE, PLOT_QUARTER_SIZE_Y * 2 + MAIN_ROAD_SIZE);
+  private boolean generated = false;
 
-  SimpleMapGenerator() {
+  SimplePlotMapGenerator() {
   }
 
-  private static void setFloors(int x, int y, int width, int height, final @NotNull Floor floor) {
-    for (int i = x; i < x + width; i++) {
-      for (int j = y; j < y + height; j++) {
-        Vars.world.tile(i, j).setFloor(floor);
-      }
+  @Override
+  public void generate() {
+    if (generated) {
+      return;
+    } else {
+      generated = true;
     }
-  }
 
-  @Override
-  public int getMapWidth() {
-    return PLOT_QUARTER_SIZE_X * 2 + MAIN_ROAD_SIZE;
-  }
-
-  @Override
-  public int getMapHeight() {
-    return PLOT_QUARTER_SIZE_Y * 2 + MAIN_ROAD_SIZE;
-  }
-
-  @Override
-  public @NotNull Collection<PlotArea> getPlots() {
-    return plots.list();
-  }
-
-  @Override
-  public void get(final @NotNull Tiles tiles) {
     tiles.fill();
     tiles.forEach(t -> t.setFloor(ROAD_FLOOR));
 
     final var coreX = PLOT_QUARTER_SIZE_X + Math.floorDiv(MAIN_ROAD_SIZE, 2);
     final var coreY = PLOT_QUARTER_SIZE_Y + Math.floorDiv(MAIN_ROAD_SIZE, 2);
-    Vars.world.tile(coreX, coreY).setBlock(Blocks.coreNucleus, Team.sharded, 0);
+    tiles.get(coreX, coreY).setBlock(Blocks.coreNucleus, Team.sharded, 0);
 
     for (int i = 0; i < 2; i++) { // QUARTER_X
       for (int j = 0; j < 2; j++) { // QUARTER_Y
         for (int k = 0; k < PLOT_QUARTER_X; k++) {
           for (int l = 0; l < PLOT_QUARTER_Y; l++) {
-            // coord = QUARTER + ROAD + PLOT
+            // coords = QUARTER + ROAD + PLOT
             final var x = ((PLOT_QUARTER_SIZE_X + MAIN_ROAD_SIZE) * i) + (ROAD_SIZE * (k + 1 - i)) + (PLOT_TOTAL_SIZE_X * k);
             final var y = ((PLOT_QUARTER_SIZE_Y + MAIN_ROAD_SIZE) * j) + (ROAD_SIZE * (l + 1 - j)) + (PLOT_TOTAL_SIZE_Y * l);
 
-            plots.add(PlotArea.of(x + 1, y + 1, PLOT_SIZE_X, PLOT_SIZE_Y));
+            areas.add(PlotArea.of(x + 1, y + 1, PLOT_SIZE_X, PLOT_SIZE_Y));
             setFloors(x, y, PLOT_TOTAL_SIZE_X, PLOT_TOTAL_SIZE_Y, BORDER_FLOOR); // Outline
             setFloors(x + 1, y + 1, PLOT_SIZE_X, PLOT_SIZE_Y, PLOT_FLOOR);       // Internal
           }
         }
+      }
+    }
+  }
+
+  @Override
+  public @NotNull Tiles getTiles() {
+    return tiles;
+  }
+
+  @Override
+  public @NotNull List<PlotArea> getAreas() {
+    return Collections.unmodifiableList(areas);
+  }
+
+  @Override
+  public boolean isGenerated() {
+    return generated;
+  }
+
+  private void setFloors(int x, int y, int width, int height, final @NotNull Floor floor) {
+    for (int i = x; i < x + width; i++) {
+      for (int j = y; j < y + height; j++) {
+        tiles.get(i, j).setFloor(floor);
       }
     }
   }

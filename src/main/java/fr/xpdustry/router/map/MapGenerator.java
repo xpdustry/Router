@@ -18,21 +18,18 @@
  */
 package fr.xpdustry.router.map;
 
-import arc.func.*;
-import fr.xpdustry.router.model.*;
-import java.util.*;
 import mindustry.world.*;
 import org.jetbrains.annotations.*;
 
-public interface MapGenerator extends Cons<Tiles> {
+/**
+ * Simple class to generate maps, each instance can only be used once,
+ * unless you want IllegalStateExceptions.
+ */
+public interface MapGenerator {
 
-  static @NotNull MapGenerator simple() {
-    return new SimpleMapGenerator();
-  }
+  void generate();
 
-  int getMapWidth();
+  @NotNull Tiles getTiles();
 
-  int getMapHeight();
-
-  @NotNull Collection<PlotArea> getPlots();
+  boolean isGenerated();
 }

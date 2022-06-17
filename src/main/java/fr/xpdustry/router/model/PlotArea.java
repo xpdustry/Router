@@ -45,14 +45,6 @@ public final class PlotArea implements Position {
     return new PlotArea(x, y, w, h);
   }
 
-  public boolean contains(final float x, final float y) {
-    return getX() <= x && getX() + getW() > x && getY() <= y && getY() + getH() > y;
-  }
-
-  public boolean contains(final @NotNull Position position) {
-    return contains(position.getX(), position.getY());
-  }
-
   public int getTileX() {
     return x;
   }
@@ -85,6 +77,16 @@ public final class PlotArea implements Position {
 
   public float getH() {
     return h * Vars.tilesize;
+  }
+
+  public boolean contains(final int x, final int y) {
+    return getTileX() <= x && getTileX() + getTileW() > x
+      && getTileY() <= y && getTileY() + getTileH() > y;
+  }
+
+  public boolean contains(final @NotNull Position position) {
+    return getX() <= position.getX() && getX() + getW() > position.getX()
+      && getY() <= position.getY() && getY() + getH() > position.getY();
   }
 
   public @Nullable Schematic toSchematic() {
@@ -125,12 +127,33 @@ public final class PlotArea implements Position {
           if (build != null && !counted.contains(build.pos())) {
             final var block = build instanceof ConstructBuild cons ? cons.cblock : build.block;
             final var config = build instanceof ConstructBuild cons ? cons.lastConfig : build.config();
-            tiles.add(new Stile(block, build.tileX() - x1, build.tileY() - y1, config, (byte)build.rotation));
+            tiles.add(new Stile(block, build.tileX() - x1, build.tileY() - y1, config, (byte) build.rotation));
             counted.add(build.pos());
           }
         }
       }
+
       return new Schematic(Seq.with(tiles), new StringMap(), x2 - x1 + 1, y2 - y1 + 1);
     }
+  }
+
+  public void clear() {
+    Vars.world.tiles.forEach(t -> {
+      if (contains(t) && t.build != null) t.build.kill();
+    });
+  }
+
+  @Override
+  public boolean equals(final @Nullable Object o) {
+    if (this == o) {
+      return true;
+    } else {
+      return (o instanceof PlotArea area) && (x == area.x) && (y == area.y) && (w == area.w) && (h == area.h);
+    }
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(x, y, w, h);
   }
 }

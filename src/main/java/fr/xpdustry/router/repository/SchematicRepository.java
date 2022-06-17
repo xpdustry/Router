@@ -18,7 +18,6 @@
  */
 package fr.xpdustry.router.repository;
 
-import com.j256.ormlite.dao.*;
 import fr.xpdustry.router.model.*;
 import java.io.*;
 import java.util.*;
@@ -38,7 +37,7 @@ public interface SchematicRepository {
 
   @NotNull Optional<PlotSchematic> findSchematicById(final long id);
 
-  @NotNull CloseableIterable<PlotSchematic> findAllSchematics();
+  @NotNull Iterable<PlotSchematic> findAllSchematics();
 
   boolean existsSchematicById(final long id);
 

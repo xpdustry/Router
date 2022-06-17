@@ -25,7 +25,6 @@ import mindustry.net.*;
 import mindustry.world.*;
 import org.jetbrains.annotations.*;
 
-@ApiStatus.Experimental
 public final class MapLoader implements AutoCloseable {
 
   private final WorldReloader reloader = new WorldReloader();
@@ -38,19 +37,35 @@ public final class MapLoader implements AutoCloseable {
     Vars.world.loadMap(map);
   }
 
-  public void generate(final int width, final int height, final @NotNull Cons<Tiles> generator) {
+  public void load(final int width, final int height, final @NotNull Cons<Tiles> generator) {
     Vars.logic.reset();
     Vars.world.loadGenerator(width, height, generator);
+  }
+
+  public void load(final @NotNull MapGenerator generator) {
+    Vars.logic.reset();
+    Vars.world.beginMapLoad();
+    clearTileEntities();
+    Vars.world.tiles = generator.getTiles();
+    generator.generate();
+    Vars.world.endMapLoad();
   }
 
   @Override
   public void close() {
     Vars.logic.play();
-
     if (Vars.net.active()) {
       reloader.end();
     } else {
       Vars.netServer.openServer();
+    }
+  }
+
+  private void clearTileEntities() {
+    for (Tile tile : Vars.world.tiles) {
+      if (tile != null && tile.build != null) {
+        tile.build.remove();
+      }
     }
   }
 }

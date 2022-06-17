@@ -28,20 +28,17 @@ import org.jetbrains.annotations.*;
 
 @DatabaseTable(tableName = "plot_schematic")
 public final class PlotSchematic {
+
   @DatabaseField(canBeNull = false, generatedId = true)
   private final long id;
   @DatabaseField(canBeNull = false, index = true)
   private final String author;
-  @DatabaseField(canBeNull = false, dataType=DataType.BYTE_ARRAY, columnName = "schematic")
+  @DatabaseField(canBeNull = false, dataType = DataType.BYTE_ARRAY, columnName = "schematic")
   private final byte[] rawSchematic;
   @DatabaseField(canBeNull = false)
   private final Date creationDate;
 
   private transient @Nullable Schematic schematic;
-
-  public static @NotNull PlotSchematic of(final long id, final @NotNull String author, final byte[] rawSchematic, final @NotNull Date creationDate) {
-    return new PlotSchematic(id, author, rawSchematic, creationDate);
-  }
 
   PlotSchematic(final long id, final @NotNull String author, final byte[] rawSchematic, final @NotNull Date creationDate) {
     this.id = id;
@@ -52,7 +49,11 @@ public final class PlotSchematic {
 
   // Constructor for ORMLIte, DO NOT USE
   PlotSchematic() {
-    this(0, "", new byte[]{}, Date.from(Instant.now()));
+    this(0, "", new byte[] {}, Date.from(Instant.now()));
+  }
+
+  public static @NotNull PlotSchematic of(final long id, final @NotNull String author, final byte[] rawSchematic, final @NotNull Date creationDate) {
+    return new PlotSchematic(id, author, rawSchematic, creationDate);
   }
 
   public @NotNull String getAuthor() {
@@ -78,12 +79,12 @@ public final class PlotSchematic {
     return schematic;
   }
 
-  public @Nullable String getName() {
-    return getSchematic().tags.get("name");
+  public @NotNull String getName() {
+    return getSchematic().name();
   }
 
-  public @Nullable String getDescription() {
-    return getSchematic().tags.get("description");
+  public @NotNull String getDescription() {
+    return getSchematic().description();
   }
 
   public Date getCreationDate() {

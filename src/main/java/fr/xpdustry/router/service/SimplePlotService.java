@@ -53,10 +53,7 @@ final class SimplePlotService implements PlotService {
 
   @Override
   public void setPlotAreas(final @NotNull Collection<PlotArea> areas) {
-    plots.clear();
-    areas.forEach(area -> plots.add(Plot.of(area)));
-    if (areas.size() != plots.size()) {
-      throw new IllegalStateException("This ain't supposed to happen mate.");
-    }
+    this.plots.clear();
+    areas.stream().map(Plot::of).forEach(plots::add);
   }
 }
