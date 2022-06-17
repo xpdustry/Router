@@ -46,7 +46,21 @@ public final class RouterFilter implements ActionFilter {
       switch (action.type) {
         case placeBlock -> action.tile.getLinkedTilesAs(action.block, positions::add);
         case breakBlock, rotate, withdrawItem, depositItem -> positions.add(action.tile);
-        case configure -> positions.addAll(getConfigPositions(action.tile, action.config));
+        case configure -> {
+          if (isLinkableBlock(action.tile.block())) {
+            if (action.config instanceof Integer pos) {
+              positions.add(SimplePosition.of(pos));
+            } else if (action.config instanceof Point2 point) {
+              positions.add(SimplePosition.of(point));
+            } else if (action.config instanceof Point2[] points) {
+              for (final var point : points) {
+                positions.add(SimplePosition.of(point));
+              }
+            }
+          } else {
+            positions.add(action.tile);
+          }
+        }
         default -> {
           return true;
         }
@@ -60,29 +74,7 @@ public final class RouterFilter implements ActionFilter {
     return true;
   }
 
-  private @NotNull Collection<Position> getConfigPositions(final @NotNull Tile tile, final @Nullable Object config) {
-    final List<Position> positions = new ArrayList<>();
-
-    if (tile.block() instanceof LogicBlock && config instanceof Integer pos) {
-      positions.add(SimplePosition.of(pos));
-    } else if (tile.block() instanceof PowerNode) {
-      if (config instanceof Integer pos) {
-        positions.add(SimplePosition.of(pos));
-      } else if (config instanceof Point2[] points) {
-        for (final var point : points) {
-          positions.add(SimplePosition.of(point));
-        }
-      }
-    } else if (tile.block() instanceof ItemBridge) {
-      if (config instanceof Integer pos) {
-        positions.add(SimplePosition.of(pos));
-      } else if (config instanceof Point2 point) {
-        positions.add(SimplePosition.of(point));
-      }
-    } else {
-      positions.add(tile);
-    }
-
-    return positions;
+  private boolean isLinkableBlock(final @NotNull Block block) {
+    return block instanceof LogicBlock || block instanceof PowerNode || block instanceof ItemBridge || block instanceof MassDriver;
   }
 }
