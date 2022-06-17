@@ -96,6 +96,11 @@ public final class RouterPlugin extends Plugin {
       plots.findPlotsByOwner(e.player.uuid()).forEach(p -> p.setOwner(null));
       plots.findAllPlots().forEach(plot -> plot.removeMember(e.player.uuid()));
     });
+
+    // Keeps units from rebuilding
+    Events.on(BlockDestroyEvent.class, e -> {
+      e.tile.team().data().blocks.clear();
+    });
   }
 
   @Override
