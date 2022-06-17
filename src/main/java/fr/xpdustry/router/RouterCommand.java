@@ -47,7 +47,7 @@ public final class RouterCommand {
   }
 
   public void registerClientCommands(final @NotNull CommandHandler handler) {
-    handler.<Player>register("router-plot-claim", "<id>", "Claim a plot.", (args, player) -> {
+    handler.<Player>register("plot-claim", "<id>", "Claim a plot.", (args, player) -> {
       if (plots.countPlotsByOwner(player.uuid()) == MAX_OWNED_PLOTS) {
         player.sendMessage("The maximum number of owned plots is " + MAX_OWNED_PLOTS + ", revoke one if you want to claim a new one.");
         return;
@@ -66,7 +66,7 @@ public final class RouterCommand {
       }
     });
 
-    handler.<Player>register("router-plot-revoke", "<id>", "Revoke a plot.", (args, player) -> {
+    handler.<Player>register("plot-revoke", "<id>", "Revoke a plot.", (args, player) -> {
       final var plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
       if (plot == null) {
         player.sendMessage("The id is invalid.");
@@ -78,7 +78,7 @@ public final class RouterCommand {
       }
     });
 
-    handler.<Player>register("router-plot-clear", "<id>", "Clear a plot.", (args, player) -> {
+    handler.<Player>register("plot-clear", "<id>", "Clear a plot.", (args, player) -> {
       final var plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
       if (plot == null) {
         player.sendMessage("The id is invalid.");
@@ -90,7 +90,7 @@ public final class RouterCommand {
       }
     });
 
-    handler.<Player>register("router-plot-publish", "<id>", "Publish a schematic.", (args, player) -> {
+    handler.<Player>register("plot-publish", "<id>", "Publish a schematic.", (args, player) -> {
       final Plot plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
       if (plot == null) {
         player.sendMessage("The id is invalid.");
@@ -104,7 +104,7 @@ public final class RouterCommand {
       }
     });
 
-    handler.<Player>register("router-members", "<id>", "List the members of one of your plot.", (args, player) -> {
+    handler.<Player>register("plot-members", "<id>", "List the members of one of your plot.", (args, player) -> {
       final var plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
       if (plot == null) {
         player.sendMessage("The id is invalid.");
@@ -124,7 +124,7 @@ public final class RouterCommand {
       }
     });
 
-    handler.<Player>register("router-members-add", "<id> <name...>", "Add a an online player to your plot.", (args, player) -> {
+    handler.<Player>register("plot-members-add", "<id> <name...>", "Add a an online player to your plot.", (args, player) -> {
       final var plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
       if (plot == null) {
         player.sendMessage("The id is invalid.");
@@ -145,7 +145,7 @@ public final class RouterCommand {
       }
     });
 
-    handler.<Player>register("router-members-remove", "<name>", "Remove a member from your plot.", (args, player) -> {
+    handler.<Player>register("plot-members-remove", "<name>", "Remove a member from your plot.", (args, player) -> {
       final var plot = plots.findPlotById(Strings.parseInt(args[0], -1)).orElse(null);
       if (plot == null) {
         player.sendMessage("The id is invalid.");
@@ -175,16 +175,16 @@ public final class RouterCommand {
         Vars.state.rules = createRouterRules();
         plots.setPlotAreas(generator.getAreas());
 
-        final var placeHolders = schematics.getLatestSchematics(plots.countPlots()).iterator();
-        final var availablePlots = Seq.with(plots.findAllPlots());
+        final var placeholders = schematics.getLatestSchematics(plots.countPlots()).iterator();
+        final var available = Seq.with(plots.findAllPlots());
 
-        while (placeHolders.hasNext() && !availablePlots.isEmpty()) {
-          final var placeHolder = placeHolders.next();
-          final var plot = availablePlots.random();
-          availablePlots.remove(plot, true);
+        while (placeholders.hasNext() && !available.isEmpty()) {
+          final var placeholder = placeholders.next();
+          final var plot = available.random();
+          available.remove(plot, true);
 
-          if (placeHolder.getSchematic().width <= plot.getArea().getTileW() && placeHolder.getSchematic().height <= plot.getArea().getTileH()) {
-            plot.setPlaceholder(placeHolder);
+          if (placeholder.getSchematic().width <= plot.getArea().getTileW() && placeholder.getSchematic().height <= plot.getArea().getTileH()) {
+            plot.setPlaceholder(placeholder);
           }
         }
       }

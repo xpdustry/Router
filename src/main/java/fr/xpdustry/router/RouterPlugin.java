@@ -66,7 +66,7 @@ public final class RouterPlugin extends Plugin {
           } else if (plot.getPlaceholder() != null){
             title = "[yellow]" + getPlayerLastName(plot.getPlaceholder().getAuthor()) + "'s schematic";
           } else {
-            title = "[green]Empty plot.";
+            title = "[green]Empty plot";
           }
 
           Call.label(
