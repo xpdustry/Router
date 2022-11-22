@@ -1,5 +1,5 @@
 /*
- * Router, a Reddit-like Mindustry plugin for sharing schematics.
+ * Router, a plugin for sharing schematics.
  *
  * Copyright (C) 2022 Xpdustry
  *
@@ -16,30 +16,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package fr.xpdustry.router.exception;
+package fr.xpdustry.router.service;
 
-import fr.xpdustry.router.model.*;
-import java.io.*;
-import org.jetbrains.annotations.*;
+import fr.xpdustry.router.model.Plot;
+import java.io.Serial;
 
 public class InvalidPlotException extends Exception {
 
-  @Serial
-  private static final long serialVersionUID = -1671640589672425282L;
+    @Serial
+    private static final long serialVersionUID = -1671640589672425282L;
 
-  private final Plot plot;
+    private final Plot plot;
 
-  public InvalidPlotException(final @NotNull String message, final @NotNull Plot plot) {
-    super(message);
-    this.plot = plot;
-  }
+    public InvalidPlotException(final String message, final Plot plot) {
+        super(message);
+        this.plot = plot;
+    }
 
-  public InvalidPlotException(final @NotNull String message, final @NotNull Plot plot, final @NotNull Throwable cause) {
-    super(message, cause);
-    this.plot = plot;
-  }
+    public InvalidPlotException(final String message, final Plot plot, final Throwable cause) {
+        super(message, cause);
+        this.plot = plot;
+    }
 
-  public @NotNull Plot getPlot() {
-    return plot;
-  }
+    public Plot getPlot() {
+        return plot;
+    }
 }

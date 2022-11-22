@@ -1,5 +1,5 @@
 /*
- * Router, a Reddit-like Mindustry plugin for sharing schematics.
+ * Router, a plugin for sharing schematics.
  *
  * Copyright (C) 2022 Xpdustry
  *
@@ -18,19 +18,18 @@
  */
 package fr.xpdustry.router.service;
 
-import fr.xpdustry.router.exception.*;
-import fr.xpdustry.router.model.*;
-import fr.xpdustry.router.repository.*;
-import java.util.*;
-import org.jetbrains.annotations.*;
+import fr.xpdustry.router.model.Plot;
+import fr.xpdustry.router.model.PlotSchematic;
+import fr.xpdustry.router.repository.SchematicRepository;
+import java.util.List;
 
 public interface SchematicService {
 
-  static @NotNull SchematicService simple(final @NotNull SchematicRepository repository) {
-    return new SimpleSchematicService(repository);
-  }
+    static SchematicService simple(final SchematicRepository repository) {
+        return new SimpleSchematicService(repository);
+    }
 
-  void publishSchematic(final @NotNull Plot plot) throws InvalidPlotException;
+    void publishSchematic(final Plot plot) throws InvalidPlotException;
 
-  @NotNull List<PlotSchematic> getLatestSchematics(final long number);
+    List<PlotSchematic> getLatestSchematics(final long number);
 }

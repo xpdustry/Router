@@ -4,7 +4,7 @@
   "author": "Xpdustry",
   "description": "A Reddit-like server for sharing schematics.",
   "version": "0.2.0-SNAPSHOT",
-  "minGameVersion": "126",
+  "minGameVersion": "140.2",
   "hidden": true,
   "java": true,
   "main": "fr.xpdustry.router.RouterPlugin",

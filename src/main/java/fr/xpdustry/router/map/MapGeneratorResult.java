@@ -18,10 +18,9 @@
  */
 package fr.xpdustry.router.map;
 
-// TODO Remove this intermediate interface
-public interface PlotMapGenerator extends MapGenerator<PlotMapGeneratorResult> {
+import mindustry.world.Tiles;
 
-    static PlotMapGenerator simple() {
-        return new SimplePlotMapGenerator();
-    }
+public interface MapGeneratorResult {
+
+    Tiles getTiles();
 }

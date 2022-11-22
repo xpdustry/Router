@@ -1,5 +1,5 @@
 /*
- * Router, a Reddit-like Mindustry plugin for sharing schematics.
+ * Router, a plugin for sharing schematics.
  *
  * Copyright (C) 2022 Xpdustry
  *
@@ -18,76 +18,83 @@
  */
 package fr.xpdustry.router.model;
 
-import com.j256.ormlite.field.*;
-import com.j256.ormlite.table.*;
-import java.io.*;
-import java.time.*;
-import java.util.*;
-import mindustry.game.*;
-import org.jetbrains.annotations.*;
+import com.j256.ormlite.field.DataType;
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.Date;
+import mindustry.game.Schematic;
+import mindustry.game.Schematics;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 @DatabaseTable(tableName = "plot_schematic")
 public final class PlotSchematic {
 
-  @DatabaseField(canBeNull = false, generatedId = true)
-  private final long id;
-  @DatabaseField(canBeNull = false, index = true)
-  private final String author;
-  @DatabaseField(canBeNull = false, dataType = DataType.BYTE_ARRAY, columnName = "schematic")
-  private final byte[] rawSchematic;
-  @DatabaseField(canBeNull = false)
-  private final Date creationDate;
+    @DatabaseField(canBeNull = false, generatedId = true)
+    private final long id;
 
-  private transient @Nullable Schematic schematic;
+    @DatabaseField(canBeNull = false, index = true)
+    private final String author;
 
-  PlotSchematic(final long id, final @NotNull String author, final byte[] rawSchematic, final @NotNull Date creationDate) {
-    this.id = id;
-    this.author = author;
-    this.rawSchematic = rawSchematic;
-    this.creationDate = creationDate;
-  }
+    @DatabaseField(canBeNull = false, dataType = DataType.BYTE_ARRAY, columnName = "schematic")
+    private final byte[] rawSchematic;
 
-  // Constructor for ORMLIte, DO NOT USE
-  PlotSchematic() {
-    this(0, "", new byte[] {}, Date.from(Instant.now()));
-  }
+    @DatabaseField(canBeNull = false)
+    private final Date creationDate;
 
-  public static @NotNull PlotSchematic of(final long id, final @NotNull String author, final byte[] rawSchematic, final @NotNull Date creationDate) {
-    return new PlotSchematic(id, author, rawSchematic, creationDate);
-  }
+    private transient @Nullable Schematic schematic;
 
-  public @NotNull String getAuthor() {
-    return author;
-  }
-
-  public long getId() {
-    return id;
-  }
-
-  public byte[] getRawSchematic() {
-    return rawSchematic;
-  }
-
-  public synchronized @NotNull Schematic getSchematic() {
-    if (schematic == null) {
-      try (final var stream = new ByteArrayInputStream(rawSchematic)) {
-        this.schematic = Schematics.read(stream);
-      } catch (final IOException e) {
-        throw new RuntimeException(e);
-      }
+    PlotSchematic(final long id, final String author, final byte[] rawSchematic, final Date creationDate) {
+        this.id = id;
+        this.author = author;
+        this.rawSchematic = rawSchematic;
+        this.creationDate = creationDate;
     }
-    return schematic;
-  }
 
-  public @NotNull String getName() {
-    return getSchematic().name();
-  }
+    // Constructor for ORMLIte, DO NOT USE
+    PlotSchematic() {
+        this(0, "", new byte[] {}, Date.from(Instant.now()));
+    }
 
-  public @NotNull String getDescription() {
-    return getSchematic().description();
-  }
+    public static PlotSchematic of(
+            final long id, final String author, final byte[] rawSchematic, final Date creationDate) {
+        return new PlotSchematic(id, author, rawSchematic, creationDate);
+    }
 
-  public Date getCreationDate() {
-    return creationDate;
-  }
+    public String getAuthor() {
+        return author;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public byte[] getRawSchematic() {
+        return rawSchematic;
+    }
+
+    public String getName() {
+        return getSchematic().name();
+    }
+
+    public String getDescription() {
+        return getSchematic().description();
+    }
+
+    public Date getCreationDate() {
+        return creationDate;
+    }
+
+    public synchronized Schematic getSchematic() {
+        if (schematic == null) {
+            try (final var stream = new ByteArrayInputStream(rawSchematic)) {
+                this.schematic = Schematics.read(stream);
+            } catch (final IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return schematic;
+    }
 }

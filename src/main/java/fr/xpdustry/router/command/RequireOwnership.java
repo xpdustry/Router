@@ -16,12 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package fr.xpdustry.router.map;
+package fr.xpdustry.router.command;
 
-// TODO Remove this intermediate interface
-public interface PlotMapGenerator extends MapGenerator<PlotMapGeneratorResult> {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    static PlotMapGenerator simple() {
-        return new SimplePlotMapGenerator();
-    }
-}
+@Target(ElementType.PARAMETER)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface RequireOwnership {}

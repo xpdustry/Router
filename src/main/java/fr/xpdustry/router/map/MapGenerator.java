@@ -1,5 +1,5 @@
 /*
- * Router, a Reddit-like Mindustry plugin for sharing schematics.
+ * Router, a plugin for sharing schematics.
  *
  * Copyright (C) 2022 Xpdustry
  *
@@ -18,18 +18,11 @@
  */
 package fr.xpdustry.router.map;
 
-import mindustry.world.*;
-import org.jetbrains.annotations.*;
-
 /**
  * Simple class to generate maps, each instance can only be used once,
  * unless you want IllegalStateExceptions.
  */
-public interface MapGenerator {
+public interface MapGenerator<R extends MapGeneratorResult> {
 
-  void generate();
-
-  @NotNull Tiles getTiles();
-
-  boolean isGenerated();
+    R generate();
 }

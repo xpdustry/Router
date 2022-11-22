@@ -1,5 +1,5 @@
 /*
- * Router, a Reddit-like Mindustry plugin for sharing schematics.
+ * Router, a plugin for sharing schematics.
  *
  * Copyright (C) 2022 Xpdustry
  *
@@ -18,54 +18,55 @@
  */
 package fr.xpdustry.router.map;
 
-import arc.func.*;
-import mindustry.*;
-import mindustry.maps.*;
-import mindustry.net.*;
-import mindustry.world.*;
-import org.jetbrains.annotations.*;
+import java.util.function.Consumer;
+import mindustry.Vars;
+import mindustry.maps.Map;
+import mindustry.net.WorldReloader;
+import mindustry.world.Tile;
+import mindustry.world.Tiles;
 
 public final class MapLoader implements AutoCloseable {
 
-  private final WorldReloader reloader = new WorldReloader();
+    private final WorldReloader reloader = new WorldReloader();
 
-  public MapLoader() {
-    if (Vars.net.active()) reloader.begin();
-  }
-
-  public void load(final @NotNull Map map) {
-    Vars.world.loadMap(map);
-  }
-
-  public void load(final int width, final int height, final @NotNull Cons<Tiles> generator) {
-    Vars.logic.reset();
-    Vars.world.loadGenerator(width, height, generator);
-  }
-
-  public void load(final @NotNull MapGenerator generator) {
-    Vars.logic.reset();
-    Vars.world.beginMapLoad();
-    clearTileEntities();
-    Vars.world.tiles = generator.getTiles();
-    generator.generate();
-    Vars.world.endMapLoad();
-  }
-
-  @Override
-  public void close() {
-    Vars.logic.play();
-    if (Vars.net.active()) {
-      reloader.end();
-    } else {
-      Vars.netServer.openServer();
+    public MapLoader() {
+        if (Vars.net.active()) {
+            reloader.begin();
+        }
     }
-  }
 
-  private void clearTileEntities() {
-    for (Tile tile : Vars.world.tiles) {
-      if (tile != null && tile.build != null) {
-        tile.build.remove();
-      }
+    public void load(final Map map) {
+        Vars.world.loadMap(map);
     }
-  }
+
+    public void load(final int width, final int height, final Consumer<Tiles> generator) {
+        Vars.logic.reset();
+        Vars.world.loadGenerator(width, height, generator::accept);
+    }
+
+    public <R extends MapGeneratorResult> R load(final MapGenerator<R> generator) {
+        Vars.logic.reset();
+        Vars.world.beginMapLoad();
+        // Clear tile entities
+        for (Tile tile : Vars.world.tiles) {
+            if (tile != null && tile.build != null) {
+                tile.build.remove();
+            }
+        }
+        final var result = generator.generate();
+        Vars.world.tiles = result.getTiles();
+        generator.generate();
+        Vars.world.endMapLoad();
+        return result;
+    }
+
+    @Override
+    public void close() {
+        Vars.logic.play();
+        if (Vars.net.active()) {
+            reloader.end();
+        } else {
+            Vars.netServer.openServer();
+        }
+    }
 }

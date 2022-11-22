@@ -1,5 +1,5 @@
 /*
- * Router, a Reddit-like Mindustry plugin for sharing schematics.
+ * Router, a plugin for sharing schematics.
  *
  * Copyright (C) 2022 Xpdustry
  *
@@ -18,53 +18,55 @@
  */
 package fr.xpdustry.router.service;
 
-import fr.xpdustry.router.exception.*;
-import fr.xpdustry.router.model.*;
-import fr.xpdustry.router.repository.*;
-import java.io.*;
-import java.time.*;
-import java.util.*;
-import java.util.stream.*;
-import mindustry.game.*;
-import org.jetbrains.annotations.*;
+import fr.xpdustry.router.model.Plot;
+import fr.xpdustry.router.model.PlotSchematic;
+import fr.xpdustry.router.repository.SchematicRepository;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.time.Clock;
+import java.time.Instant;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.StreamSupport;
+import mindustry.game.Schematics;
 
 final class SimpleSchematicService implements SchematicService {
 
-  private final SchematicRepository repository;
+    private final SchematicRepository repository;
 
-  SimpleSchematicService(final @NotNull SchematicRepository repository) {
-    this.repository = repository;
-  }
-
-  @Override
-  public void publishSchematic(final @NotNull Plot plot) throws InvalidPlotException {
-    if (plot.getOwner() == null) {
-      throw new InvalidPlotException("This plot has no owner.", plot);
+    SimpleSchematicService(final SchematicRepository repository) {
+        this.repository = repository;
     }
 
-    final var schematic = plot.getArea().toSchematic();
-    if (schematic == null) {
-      throw new InvalidPlotException("The plot is empty...", plot);
+    @Override
+    public void publishSchematic(final Plot plot) throws InvalidPlotException {
+        if (plot.getOwner() == null) {
+            throw new InvalidPlotException("This plot has no owner.", plot);
+        }
+
+        final var schematic = plot.getArea().toSchematic();
+        if (schematic == null) {
+            throw new InvalidPlotException("The plot is empty...", plot);
+        }
+
+        final byte[] bytes;
+        try (final var stream = new ByteArrayOutputStream(512)) {
+            Schematics.write(schematic, stream);
+            bytes = stream.toByteArray();
+        } catch (final IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        repository.saveSchematic(
+                PlotSchematic.of(0, plot.getOwner(), bytes, Date.from(Instant.now(Clock.systemUTC()))));
     }
 
-    final byte[] bytes;
-    try (final var stream = new ByteArrayOutputStream(512)) {
-      Schematics.write(schematic, stream);
-      bytes = stream.toByteArray();
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
+    @Override
+    public List<PlotSchematic> getLatestSchematics(final long number) {
+        return StreamSupport.stream(repository.findAllSchematics().spliterator(), false)
+                .sorted(Comparator.comparing(PlotSchematic::getCreationDate))
+                .limit(number)
+                .toList();
     }
-
-    repository.saveSchematic(
-      PlotSchematic.of(0, plot.getOwner(), bytes, Date.from(Instant.now(Clock.systemUTC())))
-    );
-  }
-
-  @Override
-  public @NotNull List<PlotSchematic> getLatestSchematics(final long number) {
-    return StreamSupport.stream(repository.findAllSchematics().spliterator(), false)
-      .sorted(Comparator.comparing(PlotSchematic::getCreationDate))
-      .limit(number)
-      .toList();
-  }
 }

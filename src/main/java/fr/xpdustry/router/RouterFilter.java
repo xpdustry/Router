@@ -1,5 +1,5 @@
 /*
- * Router, a Reddit-like Mindustry plugin for sharing schematics.
+ * Router, a plugin for sharing schematics.
  *
  * Copyright (C) 2022 Xpdustry
  *
@@ -18,63 +18,69 @@
  */
 package fr.xpdustry.router;
 
-import arc.math.geom.*;
-import fr.xpdustry.router.model.*;
-import fr.xpdustry.router.service.*;
-import fr.xpdustry.router.util.*;
-import java.util.*;
-import mindustry.net.Administration.*;
-import mindustry.world.*;
-import mindustry.world.blocks.distribution.*;
-import mindustry.world.blocks.logic.*;
-import mindustry.world.blocks.power.*;
-import org.jetbrains.annotations.*;
+import arc.math.geom.Point2;
+import arc.math.geom.Position;
+import fr.xpdustry.router.model.Plot;
+import fr.xpdustry.router.service.PlotManager;
+import fr.xpdustry.router.util.SimplePosition;
+import java.util.ArrayList;
+import java.util.List;
+import mindustry.net.Administration.ActionFilter;
+import mindustry.net.Administration.PlayerAction;
+import mindustry.world.Block;
+import mindustry.world.blocks.distribution.ItemBridge;
+import mindustry.world.blocks.distribution.MassDriver;
+import mindustry.world.blocks.logic.LogicBlock;
+import mindustry.world.blocks.power.PowerNode;
 
 public final class RouterFilter implements ActionFilter {
 
-  private final PlotService plots;
+    private final PlotManager plots;
 
-  public RouterFilter(final @NotNull PlotService plots) {
-    this.plots = plots;
-  }
-
-  @Override
-  public boolean allow(final @NotNull PlayerAction action) {
-    if (RouterPlugin.isActive()) {
-      final List<Position> positions = new ArrayList<>();
-
-      switch (action.type) {
-        case placeBlock -> action.tile.getLinkedTilesAs(action.block, positions::add);
-        case breakBlock, rotate, withdrawItem, depositItem -> positions.add(action.tile);
-        case configure -> {
-          if (isLinkableBlock(action.tile.block())) {
-            if (action.config instanceof Integer pos) {
-              positions.add(SimplePosition.of(pos));
-            } else if (action.config instanceof Point2 point) {
-              positions.add(SimplePosition.of(point));
-            } else if (action.config instanceof Point2[] points) {
-              for (final var point : points) {
-                positions.add(SimplePosition.of(point));
-              }
-            }
-          } else {
-            positions.add(action.tile);
-          }
-        }
-        default -> {
-          return true;
-        }
-      }
-
-      return plots.findAllPlots().stream()
-        .filter(p -> p.isTrusted(action.player.uuid()))
-        .map(Plot::getArea)
-        .anyMatch(a -> positions.stream().allMatch(a::contains));
+    public RouterFilter(final PlotManager plots) {
+        this.plots = plots;
     }
-    return true;
-  }
 
-  private boolean isLinkableBlock(final @NotNull Block block) {
-    return block instanceof LogicBlock || block instanceof PowerNode || block instanceof ItemBridge || block instanceof MassDriver;
-  }
+    @Override
+    public boolean allow(final PlayerAction action) {
+        if (RouterPlugin.isActive()) {
+            final List<Position> positions = new ArrayList<>();
+
+            switch (action.type) {
+                case placeBlock -> action.tile.getLinkedTilesAs(action.block, positions::add);
+                case breakBlock, rotate, withdrawItem, depositItem -> positions.add(action.tile);
+                case configure -> {
+                    if (isLinkableBlock(action.tile.block())) {
+                        if (action.config instanceof Integer pos) {
+                            positions.add(SimplePosition.of(pos));
+                        } else if (action.config instanceof Point2 point) {
+                            positions.add(SimplePosition.of(point));
+                        } else if (action.config instanceof Point2[] points) {
+                            for (final var point : points) {
+                                positions.add(SimplePosition.of(point));
+                            }
+                        }
+                    } else {
+                        positions.add(action.tile);
+                    }
+                }
+                default -> {
+                    return true;
+                }
+            }
+
+            return plots.findAllPlots().stream()
+                    .filter(p -> p.isTrusted(action.player.uuid()))
+                    .map(Plot::getArea)
+                    .anyMatch(a -> positions.stream().allMatch(a::contains));
+        }
+        return true;
+    }
+
+    private boolean isLinkableBlock(final Block block) {
+        return block instanceof LogicBlock
+                || block instanceof PowerNode
+                || block instanceof ItemBridge
+                || block instanceof MassDriver;
+    }
 }

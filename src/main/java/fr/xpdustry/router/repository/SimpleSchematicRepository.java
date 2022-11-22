@@ -1,5 +1,5 @@
 /*
- * Router, a Reddit-like Mindustry plugin for sharing schematics.
+ * Router, a plugin for sharing schematics.
  *
  * Copyright (C) 2022 Xpdustry
  *
@@ -18,89 +18,73 @@
  */
 package fr.xpdustry.router.repository;
 
-import com.j256.ormlite.dao.*;
-import com.j256.ormlite.jdbc.*;
-import com.j256.ormlite.logger.*;
-import com.j256.ormlite.table.*;
-import fr.xpdustry.router.model.*;
-import java.sql.*;
-import java.util.*;
-import org.jetbrains.annotations.*;
+import com.j256.ormlite.dao.RuntimeExceptionDao;
+import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.logger.Level;
+import com.j256.ormlite.table.TableUtils;
+import fr.xpdustry.router.model.PlotSchematic;
+import java.sql.SQLException;
+import java.util.Optional;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 final class SimpleSchematicRepository implements SchematicRepository {
 
-  static {
-    com.j256.ormlite.logger.Logger.setGlobalLogLevel(Level.ERROR);
-  }
-
-  private final Dao<PlotSchematic, Long> dao;
-
-  SimpleSchematicRepository(final @NotNull String url, final @Nullable String username, final @Nullable String password) {
-    try {
-      final var source = new JdbcConnectionSource(url, username, password);
-      this.dao = DaoManager.createDao(source, PlotSchematic.class);
-      TableUtils.createTableIfNotExists(source, PlotSchematic.class);
-    } catch (final SQLException e) {
-      throw new RuntimeException(e);
+    static {
+        com.j256.ormlite.logger.Logger.setGlobalLogLevel(Level.ERROR);
     }
-  }
 
-  SimpleSchematicRepository(final @NotNull String url) {
-    this(url, null, null);
-  }
+    private final RuntimeExceptionDao<PlotSchematic, Long> dao;
 
-  @Override
-  public void saveSchematic(final @NotNull PlotSchematic schematic) {
-    try {
-      dao.createOrUpdate(schematic);
-    } catch (final SQLException e) {
-      throw new RuntimeException(e);
+    SimpleSchematicRepository(final String url, final @Nullable String username, final @Nullable String password) {
+        try {
+            final var source = new JdbcConnectionSource(url, username, password);
+            this.dao = RuntimeExceptionDao.createDao(source, PlotSchematic.class);
+            TableUtils.createTableIfNotExists(source, PlotSchematic.class);
+        } catch (final SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
-  }
 
-  @Override
-  public @NotNull Optional<PlotSchematic> findSchematicById(final long id) {
-    try {
-      return Optional.ofNullable(dao.queryForId(id));
-    } catch (final SQLException e) {
-      throw new RuntimeException(e);
+    SimpleSchematicRepository(final String url) {
+        this(url, null, null);
     }
-  }
 
-  @Override
-  public @NotNull Iterable<PlotSchematic> findAllSchematics() {
-    return dao;
-  }
-
-  @Override
-  public boolean existsSchematicById(final long id) {
-    return findSchematicById(id).isPresent();
-  }
-
-  @Override
-  public long countSchematics() {
-    try {
-      return dao.countOf();
-    } catch (final SQLException e) {
-      throw new RuntimeException(e);
+    @Override
+    public void saveSchematic(final PlotSchematic schematic) {
+        dao.createOrUpdate(schematic);
     }
-  }
 
-  @Override
-  public void deleteSchematicById(final long id) {
-    try {
-      dao.deleteById(id);
-    } catch (final SQLException e) {
-      throw new RuntimeException(e);
+    @Override
+    public Optional<PlotSchematic> findSchematicById(final long id) {
+        return Optional.ofNullable(dao.queryForId(id));
     }
-  }
 
-  @Override
-  public void deleteAllSchematics() {
-    try {
-      dao.deleteBuilder().delete();
-    } catch (final SQLException e) {
-      throw new RuntimeException(e);
+    @Override
+    public Iterable<PlotSchematic> findAllSchematics() {
+        return dao;
     }
-  }
+
+    @Override
+    public boolean existsSchematicById(final long id) {
+        return findSchematicById(id).isPresent();
+    }
+
+    @Override
+    public long countSchematics() {
+        return dao.countOf();
+    }
+
+    @Override
+    public void deleteSchematicById(final long id) {
+        dao.deleteById(id);
+    }
+
+    @Override
+    public void deleteAllSchematics() {
+        try {
+            dao.deleteBuilder().delete();
+        } catch (final SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

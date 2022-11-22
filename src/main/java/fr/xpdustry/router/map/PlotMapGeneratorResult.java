@@ -18,10 +18,10 @@
  */
 package fr.xpdustry.router.map;
 
-// TODO Remove this intermediate interface
-public interface PlotMapGenerator extends MapGenerator<PlotMapGeneratorResult> {
+import fr.xpdustry.router.model.PlotArea;
+import java.util.List;
 
-    static PlotMapGenerator simple() {
-        return new SimplePlotMapGenerator();
-    }
+public interface PlotMapGeneratorResult extends MapGeneratorResult {
+
+    List<PlotArea> getAreas();
 }

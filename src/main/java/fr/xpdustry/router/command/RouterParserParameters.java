@@ -16,12 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package fr.xpdustry.router.map;
+package fr.xpdustry.router.command;
 
-// TODO Remove this intermediate interface
-public interface PlotMapGenerator extends MapGenerator<PlotMapGeneratorResult> {
+import cloud.commandframework.arguments.parser.ParserParameter;
+import io.leangen.geantyref.TypeToken;
 
-    static PlotMapGenerator simple() {
-        return new SimplePlotMapGenerator();
-    }
+public final class RouterParserParameters {
+
+    public static final ParserParameter<Boolean> REQUIRE_PLOT_OWNERSHIP =
+            new ParserParameter<>("require_plot_ownership", new TypeToken<>() {});
 }

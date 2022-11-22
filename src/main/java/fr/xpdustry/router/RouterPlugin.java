@@ -1,5 +1,5 @@
 /*
- * Router, a Reddit-like Mindustry plugin for sharing schematics.
+ * Router, a plugin for sharing schematics.
  *
  * Copyright (C) 2022 Xpdustry
  *
@@ -18,113 +18,82 @@
  */
 package fr.xpdustry.router;
 
-import arc.*;
-import arc.util.*;
-import fr.xpdustry.router.repository.*;
-import fr.xpdustry.router.service.*;
-import java.io.*;
-import mindustry.*;
-import mindustry.game.EventType.*;
-import mindustry.game.*;
-import mindustry.gen.*;
-import mindustry.mod.*;
-import org.jetbrains.annotations.*;
+import arc.util.CommandHandler;
+import fr.xpdustry.distributor.api.command.ArcCommandManager;
+import fr.xpdustry.distributor.api.command.sender.CommandSender;
+import fr.xpdustry.distributor.api.plugin.ExtendedPlugin;
+import fr.xpdustry.distributor.api.util.MoreEvents;
+import fr.xpdustry.router.command.RouterCommandManager;
+import fr.xpdustry.router.commands.PlotCommands;
+import fr.xpdustry.router.commands.StartCommand;
+import fr.xpdustry.router.repository.SchematicRepository;
+import fr.xpdustry.router.service.PlotManager;
+import fr.xpdustry.router.service.SchematicService;
+import java.io.File;
+import mindustry.Vars;
+import mindustry.game.EventType.PlayerJoin;
+import mindustry.game.EventType.PlayerLeave;
+import mindustry.gen.Call;
 
 @SuppressWarnings("unused")
-public final class RouterPlugin extends Plugin {
+public final class RouterPlugin extends ExtendedPlugin {
 
-  public static final String ROUTER_ACTIVE_KEY = "xpdustry-router:active";
+    public static final String ROUTER_ACTIVE_KEY = "xpdustry-router:active";
 
-  private final PlotService plots = PlotService.simple();
-  private final Interval timer = new Interval();
-  private final SchematicService schematics = SchematicService.simple(
-    SchematicRepository.of(new File("./schematics.sqlite"))
-  );
-  private final RouterCommand command = new RouterCommand(plots, schematics);
+    private final SchematicService schematics =
+            SchematicService.simple(SchematicRepository.of(new File("./schematics.sqlite")));
+    private final PlotManager plots = PlotManager.simple();
+    private final ArcCommandManager<CommandSender> serverCommands = new RouterCommandManager(this);
+    private final ArcCommandManager<CommandSender> clientCommands = new RouterCommandManager(this);
 
-  public static boolean isActive() {
-    return Vars.state.isPlaying() && Vars.state.rules.tags.getBool(ROUTER_ACTIVE_KEY);
-  }
+    public static boolean isActive() {
+        return Vars.state.isPlaying() && Vars.state.rules.tags.getBool(ROUTER_ACTIVE_KEY);
+    }
 
-  @Override
-  public void init() {
-    Vars.netServer.admins.addActionFilter(new RouterFilter(plots));
+    @Override
+    public void onInit() {
+        this.addListener(new RouterRenderer(plots));
+        Vars.netServer.admins.addActionFilter(new RouterFilter(plots));
 
-    Events.run(Trigger.update, () -> {
-      if (isActive() && timer.get(Time.toSeconds)) {
-        for (final var plot : plots.findAllPlots()) {
-          Call.label(
-            "Plot [cyan]#[]" + plot.getId(),
-            1F,
-            plot.getArea().getX() + (plot.getArea().getW() / 2F),
-            plot.getArea().getY() + (plot.getArea().getH() / 2F)
-          );
+        MoreEvents.subscribe(PlayerJoin.class, event -> {
+            if (isActive()) {
+                Call.infoMessage(
+                        event.player.con(),
+                        """
+                        Welcome to [cyan]Xpdustry Router[],
+                        A dedicated server for building and sharing [cyan]schematics[].
+                        Check out the available commands with [cyan]/help[].
 
-          final String title;
-          if (plot.getOwner() != null) {
-            title = "[red]" + getPlayerLastName(plot.getOwner()) + "'s plot";
-          } else if (plot.getPlaceholder() != null){
-            title = "[yellow]" + getPlayerLastName(plot.getPlaceholder().getAuthor()) + "'s schematic";
-          } else {
-            title = "[green]Empty plot";
-          }
+                        [gray]> The plugin is still in beta, you can suggest new features in the Xpdustry discord server at [blue]https://discord.xpdustry.fr[].[]
+                        """);
+            }
+        });
 
-          Call.label(
-            title,
-            1F,
-            plot.getArea().getX() + (plot.getArea().getW() / 2F),
-            plot.getArea().getY() + plot.getArea().getH()
-          );
-        }
-      }
-    });
+        MoreEvents.subscribe(PlayerLeave.class, event -> {
+            plots.findPlotsByOwner(event.player.uuid()).forEach(p -> p.setOwner(null));
+            plots.findAllPlots().forEach(plot -> plot.removeMember(event.player.uuid()));
+        });
+    }
 
-    Events.on(PlayerJoin.class, e -> {
-      if (isActive()) {
-        Call.infoMessage(e.player.con(), """
-          Welcome to [cyan]Xpdustry Router[],
-          A dedicated server for building and sharing [cyan]schematics[].
-          Check out the available commands with [cyan]/help[].
+    @Override
+    public void onServerCommandsRegistration(final CommandHandler handler) {
+        this.serverCommands.initialize(handler);
+        final var annotations = this.serverCommands.createAnnotationParser(CommandSender.class);
+        annotations.parse(new StartCommand(this));
+    }
 
-          [gray]> The plugin is still in beta, you can suggest new features in the Xpdustry discord server at [blue]https://discord.xpdustry.fr[].[]
-          """
-        );
-      }
-    });
+    @Override
+    public void onClientCommandsRegistration(final CommandHandler handler) {
+        this.clientCommands.initialize(handler);
+        final var annotations = this.clientCommands.createAnnotationParser(CommandSender.class);
+        annotations.parse(new PlotCommands(this));
+    }
 
-    Events.on(PlayerLeave.class, e -> {
-      plots.findPlotsByOwner(e.player.uuid()).forEach(p -> p.setOwner(null));
-      plots.findAllPlots().forEach(plot -> plot.removeMember(e.player.uuid()));
-    });
+    public PlotManager getPlotManager() {
+        return plots;
+    }
 
-    // Keeps units from rebuilding
-    Events.on(BlockDestroyEvent.class, e -> {
-      e.tile.team().data().blocks.clear();
-    });
-  }
-
-  @Override
-  public void registerServerCommands(final @NotNull CommandHandler handler) {
-    command.registerServerCommands(handler);
-  }
-
-  @Override
-  public void registerClientCommands(final @NotNull CommandHandler handler) {
-    command.registerClientCommands(handler);
-  }
-
-  private @NotNull Rules createRouterRules() {
-    final var rules = new Rules();
-    Gamemode.sandbox.apply(rules);
-    rules.modeName = "[orange]Router";
-    rules.tags.put(ROUTER_ACTIVE_KEY, "true");
-    rules.unitBuildSpeedMultiplier = Float.MIN_VALUE;
-    rules.damageExplosions = false;
-    rules.reactorExplosions = false;
-    return rules;
-  }
-
-  private @NotNull String getPlayerLastName(final @NotNull String uuid) {
-    return Strings.stripColors(Vars.netServer.admins.getInfo(uuid).lastName);
-  }
+    public SchematicService getSchematicService() {
+        return schematics;
+    }
 }

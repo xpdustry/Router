@@ -1,5 +1,5 @@
 /*
- * Router, a Reddit-like Mindustry plugin for sharing schematics.
+ * Router, a plugin for sharing schematics.
  *
  * Copyright (C) 2022 Xpdustry
  *
@@ -18,25 +18,26 @@
  */
 package fr.xpdustry.router.service;
 
-import fr.xpdustry.router.model.*;
-import java.util.*;
-import org.jetbrains.annotations.*;
+import fr.xpdustry.router.model.Plot;
+import fr.xpdustry.router.model.PlotArea;
+import java.util.List;
+import java.util.Optional;
 
-public interface PlotService {
+public interface PlotManager {
 
-  static @NotNull PlotService simple() {
-    return new SimplePlotService();
-  }
+    static PlotManager simple() {
+        return new SimplePlotManager();
+    }
 
-  @NotNull Optional<Plot> findPlotById(final int id);
+    Optional<Plot> findPlotById(final int id);
 
-  @NotNull List<Plot> findPlotsByOwner(final @NotNull String owner);
+    List<Plot> findPlotsByOwner(final String owner);
 
-  @NotNull List<Plot> findAllPlots();
+    List<Plot> findAllPlots();
 
-  long countPlots();
+    long countPlots();
 
-  long countPlotsByOwner(final @NotNull String owner);
+    long countPlotsByOwner(final String owner);
 
-  void setPlotAreas(final @NotNull Collection<PlotArea> areas);
+    void createPlots(final List<PlotArea> areas);
 }

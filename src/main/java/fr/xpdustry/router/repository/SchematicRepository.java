@@ -1,5 +1,5 @@
 /*
- * Router, a Reddit-like Mindustry plugin for sharing schematics.
+ * Router, a plugin for sharing schematics.
  *
  * Copyright (C) 2022 Xpdustry
  *
@@ -18,32 +18,31 @@
  */
 package fr.xpdustry.router.repository;
 
-import fr.xpdustry.router.model.*;
-import java.io.*;
-import java.util.*;
-import org.jetbrains.annotations.*;
+import fr.xpdustry.router.model.PlotSchematic;
+import java.io.File;
+import java.util.Optional;
 
 public interface SchematicRepository {
 
-  static @NotNull SchematicRepository of(final String url, final @NotNull String username, final @NotNull String password) {
-    return new SimpleSchematicRepository(url, username, password);
-  }
+    static SchematicRepository of(final String url, final String username, final String password) {
+        return new SimpleSchematicRepository(url, username, password);
+    }
 
-  static @NotNull SchematicRepository of(final File file) {
-    return new SimpleSchematicRepository("jdbc:sqlite:" + file.getAbsolutePath());
-  }
+    static SchematicRepository of(final File file) {
+        return new SimpleSchematicRepository("jdbc:sqlite:" + file.getAbsolutePath());
+    }
 
-  void saveSchematic(final @NotNull PlotSchematic schematic);
+    void saveSchematic(final PlotSchematic schematic);
 
-  @NotNull Optional<PlotSchematic> findSchematicById(final long id);
+    Optional<PlotSchematic> findSchematicById(final long id);
 
-  @NotNull Iterable<PlotSchematic> findAllSchematics();
+    Iterable<PlotSchematic> findAllSchematics();
 
-  boolean existsSchematicById(final long id);
+    boolean existsSchematicById(final long id);
 
-  long countSchematics();
+    long countSchematics();
 
-  void deleteSchematicById(final long id);
+    void deleteSchematicById(final long id);
 
-  void deleteAllSchematics();
+    void deleteAllSchematics();
 }

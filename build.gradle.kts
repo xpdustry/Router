@@ -1,7 +1,7 @@
-// import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 import fr.xpdustry.toxopid.ModPlatform
-// import fr.xpdustry.toxopid.task.GitHubArtifact
-// import fr.xpdustry.toxopid.task.GitHubDownload
+import fr.xpdustry.toxopid.task.GitHubArtifact
+import fr.xpdustry.toxopid.task.GitHubDownload
 import fr.xpdustry.toxopid.util.ModMetadata
 import fr.xpdustry.toxopid.util.anukenJitpack
 import fr.xpdustry.toxopid.util.mindustryDependencies
@@ -9,18 +9,23 @@ import net.ltgt.gradle.errorprone.CheckSeverity
 import net.ltgt.gradle.errorprone.errorprone
 
 plugins {
-    id("net.kyori.indra") version "2.1.1"
-    id("net.kyori.indra.publishing") version "2.1.1"
-    id("net.kyori.indra.license-header") version "2.1.1"
+    id("com.diffplug.spotless") version "6.11.0"
+    id("net.kyori.indra") version "3.0.1"
+    id("net.kyori.indra.publishing") version "3.0.1"
+    id("net.kyori.indra.git") version "3.0.1"
+    id("net.kyori.indra.licenser.spotless") version "3.0.1"
     id("net.ltgt.errorprone") version "2.0.2"
     id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("fr.xpdustry.toxopid") version "2.0.0"
+    id("fr.xpdustry.toxopid") version "2.1.1"
 }
 
-val metadata = ModMetadata.fromJson(file("plugin.json"))
-group = property("props.project-group").toString()
-description = metadata.description
+val metadata = ModMetadata.fromJson(file("plugin.json").readText())
+if (indraGit.headTag() == null) {
+    metadata.version += "-SNAPSHOT"
+}
+group = "fr.xpdustry"
 version = metadata.version
+description = metadata.description
 
 toxopid {
     compileVersion.set("v" + metadata.minGameVersion)
@@ -30,7 +35,7 @@ toxopid {
 repositories {
     mavenCentral()
     anukenJitpack()
-    maven("https://repo.xpdustry.fr/releases") {
+    maven("https://maven.xpdustry.fr/releases") {
         name = "xpdustry-releases"
         mavenContent { releasesOnly() }
     }
@@ -38,61 +43,48 @@ repositories {
 
 dependencies {
     mindustryDependencies()
+    implementation("com.alibaba.fastjson2:fastjson2:2.0.19")
+    compileOnly("fr.xpdustry:distributor-api:3.0.0-rc.3")
+    annotationProcessor("fr.xpdustry:distributor-api:3.0.0-rc.3")
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")   // Driver
     implementation("com.j256.ormlite:ormlite-jdbc:6.1") // ORM
 
-    // implementation("com.google.code.gson:gson:2.9.0")
-    // compileOnly("fr.xpdustry:distributor-core:2.6.1")
-
-    val junit = "5.8.2"
+    val junit = "5.9.0"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junit")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit")
 
-    val jetbrains = "23.0.0"
-    compileOnly("org.jetbrains:annotations:$jetbrains")
-    testCompileOnly("org.jetbrains:annotations:$jetbrains")
-
     // Static analysis
-    annotationProcessor("com.uber.nullaway:nullaway:0.9.7")
-    errorprone("com.google.errorprone:error_prone_core:2.13.1")
+    annotationProcessor("com.uber.nullaway:nullaway:0.10.5")
+    errorprone("com.google.errorprone:error_prone_core:2.16")
 }
 
 tasks.withType(JavaCompile::class.java).configureEach {
     options.errorprone {
         disableWarningsInGeneratedCode.set(true)
-        disable("MissingSummary")
+        disable(
+            "MissingSummary",
+            "FutureReturnValueIgnored",
+            "InlineMeSuggester",
+            "EmptyCatch"
+        )
         if (!name.contains("test", true)) {
             check("NullAway", CheckSeverity.ERROR)
-            option("NullAway:AnnotatedPackages", project.property("props.root-package").toString())
+            option("NullAway:AnnotatedPackages", "fr.xpdustry.router")
+            option("NullAway:TreatGeneratedAsUnannotated", true)
         }
     }
 }
 
-/*
-val downloadModLoader = tasks.create<GitHubDownload>("downloadModLoader") {
+val downloadModDependencies = tasks.register<GitHubDownload>("downloadModDependencies") {
     artifacts.add(
-        GitHubArtifact.release("Xpdustry", "ModLoaderPlugin", "v1.0.1", "ModLoaderPlugin.jar")
+        GitHubArtifact.release("Xpdustry", "Distributor", "v3.0.0-rc.3", "Distributor.jar")
     )
-}
-
-val downloadModDependencies = tasks.create<GitHubDownload>("downloadModDependencies") {
-    artifacts.add(
-        GitHubArtifact.release("Xpdustry", "Distributor", "v2.6.1", "distributor-core.jar")
-    )
-}
-
-val copyModLoader = tasks.create<Copy>("copyModLoader") {
-    from(downloadModLoader)
-    into(tasks.runMindustryServer.get().workingDir.dir("config/mods"))
 }
 
 tasks.runMindustryServer {
-    dependsOn(copyModLoader)
-    modsPath.set("mod-loader")
-    mods.setFrom(downloadModDependencies)
+    mods.setFrom(tasks.shadowJar, downloadModDependencies)
 }
- */
 
 // It does not need the plugin
 tasks.runMindustryClient {
@@ -100,30 +92,34 @@ tasks.runMindustryClient {
 }
 
 // Required by the GitHub actions
-tasks.create("getArtifactPath") {
+tasks.register("getArtifactPath") {
     doLast { println(tasks.shadowJar.get().archiveFile.get().toString()) }
 }
 
-/*
 val relocate = tasks.create<ConfigureShadowRelocation>("relocateShadowJar") {
     target = tasks.shadowJar.get()
-    prefix = project.property("props.root-package").toString() + ".shadow"
+    prefix = "fr.xpdustry.router.shadow"
 }
- */
 
 tasks.shadowJar {
-    from(project.file("plugin.json"))
-    // dependsOn(relocate)
-    // minimize()
+    /* TODO Use another ORM that support relocation
+    dependsOn(relocate)
+    minimize {
+        exclude(dependency("com.j256.ormlite:ormlite-jdbc:.*"))
+    }
+     */
+    doFirst {
+        val temp = temporaryDir.resolve("plugin.json")
+        temp.writeText(metadata.toJson(true))
+        from(temp)
+    }
     from(rootProject.file("LICENSE.md")) {
         into("META-INF")
     }
 }
 
-tasks.build.get().dependsOn(tasks.shadowJar)
-
-license {
-    header(rootProject.file("LICENSE_HEADER.md"))
+tasks.build {
+    dependsOn(tasks.shadowJar)
 }
 
 signing {
@@ -143,13 +139,11 @@ indra {
 
     gpl3OnlyLicense()
 
-    if (metadata.repo.isNotBlank()) {
-        val repo = metadata.repo.split("/")
-        github(repo[0], repo[1]) {
-            ci(true)
-            issues(true)
-            scm(true)
-        }
+    val repo = metadata.repo.split("/")
+    github(repo[0], repo[1]) {
+        ci(true)
+        issues(true)
+        scm(true)
     }
 
     configurePublications {
@@ -170,4 +164,22 @@ indra {
             }
         }
     }
+}
+
+spotless {
+    java {
+        palantirJavaFormat()
+        formatAnnotations()
+        custom("noWildcardImports") {
+            if (it.contains("*;\n")) {
+                throw Error("No wildcard imports allowed")
+            }
+            it
+        }
+        bumpThisNumberIfACustomStepChanges(1)
+    }
+}
+
+indraSpotlessLicenser {
+    licenseHeaderFile(rootProject.file("LICENSE_HEADER.md"))
 }

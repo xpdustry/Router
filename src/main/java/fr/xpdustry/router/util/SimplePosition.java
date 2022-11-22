@@ -1,5 +1,5 @@
 /*
- * Router, a Reddit-like Mindustry plugin for sharing schematics.
+ * Router, a plugin for sharing schematics.
  *
  * Copyright (C) 2022 Xpdustry
  *
@@ -18,39 +18,39 @@
  */
 package fr.xpdustry.router.util;
 
-import arc.math.geom.*;
-import mindustry.*;
-import org.jetbrains.annotations.*;
+import arc.math.geom.Point2;
+import arc.math.geom.Position;
+import mindustry.Vars;
 
 public final class SimplePosition implements Position {
 
-  private final float x;
-  private final float y;
+    private final float x;
+    private final float y;
 
-  public static @NotNull SimplePosition of(final float x, final float y) {
-    return new SimplePosition(x, y);
-  }
+    private SimplePosition(final float x, final float y) {
+        this.x = x;
+        this.y = y;
+    }
 
-  public static @NotNull SimplePosition of(final int pos) {
-    return of(Point2.unpack(pos));
-  }
+    public static SimplePosition of(final float x, final float y) {
+        return new SimplePosition(x, y);
+    }
 
-  public static @NotNull SimplePosition of(final @NotNull Point2 point) {
-    return new SimplePosition(point.x * Vars.tilesize, point.y * Vars.tilesize);
-  }
+    public static SimplePosition of(final int pos) {
+        return of(Point2.unpack(pos));
+    }
 
-  private SimplePosition(final float x, final float y) {
-    this.x = x;
-    this.y = y;
-  }
+    public static SimplePosition of(final Point2 point) {
+        return new SimplePosition(point.x * Vars.tilesize, point.y * Vars.tilesize);
+    }
 
-  @Override
-  public float getX() {
-    return x;
-  }
+    @Override
+    public float getX() {
+        return x;
+    }
 
-  @Override
-  public float getY() {
-    return y;
-  }
+    @Override
+    public float getY() {
+        return y;
+    }
 }

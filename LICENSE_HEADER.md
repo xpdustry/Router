@@ -1,4 +1,4 @@
-Router, a Reddit-like Mindustry plugin for sharing schematics.
+Router, a plugin for sharing schematics.
 
 Copyright (C) 2022 Xpdustry
 
