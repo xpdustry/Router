@@ -46,7 +46,7 @@ dependencies {
     implementation("com.alibaba.fastjson2:fastjson2:2.0.19")
     compileOnly("fr.xpdustry:distributor-api:3.0.0-rc.3")
     annotationProcessor("fr.xpdustry:distributor-api:3.0.0-rc.3")
-    implementation("org.xerial:sqlite-jdbc:3.36.0.3")   // Driver
+    implementation("org.xerial:sqlite-jdbc:3.39.4.1")   // Driver
     implementation("com.j256.ormlite:ormlite-jdbc:6.1") // ORM
 
     val junit = "5.9.0"
@@ -134,8 +134,8 @@ indra {
         minimumToolchain(17)
     }
 
-    publishSnapshotsTo("xpdustry", "https://repo.xpdustry.fr/snapshots")
-    publishReleasesTo("xpdustry", "https://repo.xpdustry.fr/releases")
+    publishSnapshotsTo("xpdustry", "https://maven.xpdustry.fr/snapshots")
+    publishReleasesTo("xpdustry", "https://maven.xpdustry.fr/releases")
 
     gpl3OnlyLicense()
 
