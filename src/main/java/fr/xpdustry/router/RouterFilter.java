@@ -31,6 +31,7 @@ import mindustry.world.Block;
 import mindustry.world.blocks.distribution.ItemBridge;
 import mindustry.world.blocks.distribution.MassDriver;
 import mindustry.world.blocks.logic.LogicBlock;
+import mindustry.world.blocks.payloads.PayloadMassDriver;
 import mindustry.world.blocks.power.PowerNode;
 
 public final class RouterFilter implements ActionFilter {
@@ -81,6 +82,7 @@ public final class RouterFilter implements ActionFilter {
         return block instanceof LogicBlock
                 || block instanceof PowerNode
                 || block instanceof ItemBridge
-                || block instanceof MassDriver;
+                || block instanceof MassDriver
+                || block instanceof PayloadMassDriver;
     }
 }
