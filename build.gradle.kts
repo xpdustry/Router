@@ -43,6 +43,7 @@ repositories {
 
 dependencies {
     mindustryDependencies()
+    implementation("com.alibaba.fastjson2:fastjson2:2.0.20")
     compileOnly("fr.xpdustry:distributor-api:3.0.0-rc.3")
     annotationProcessor("fr.xpdustry:distributor-api:3.0.0-rc.3")
     // implementation("org.xerial:sqlite-jdbc:3.39.4.1")   // Driver
