@@ -26,7 +26,7 @@ import java.util.Optional;
 public interface PlotManager {
 
     static PlotManager simple() {
-        return new SimplePlotManager();
+        return new PlotManagerImpl();
     }
 
     Optional<Plot> findPlotById(final int id);

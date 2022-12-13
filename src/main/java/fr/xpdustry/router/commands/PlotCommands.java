@@ -25,12 +25,12 @@ import fr.xpdustry.distributor.api.command.sender.CommandSender;
 import fr.xpdustry.router.RouterPlugin;
 import fr.xpdustry.router.command.RequireOwnership;
 import fr.xpdustry.router.model.Plot;
-import fr.xpdustry.router.service.InvalidPlotException;
 import mindustry.Vars;
+import mindustry.gen.Call;
 import mindustry.gen.Groups;
 import mindustry.gen.Player;
 
-@CommandMethod("plots")
+@CommandMethod("plot")
 public final class PlotCommands {
 
     private static final long MAX_OWNED_PLOTS = 2;
@@ -38,6 +38,21 @@ public final class PlotCommands {
 
     public PlotCommands(final RouterPlugin router) {
         this.router = router;
+    }
+
+    @CommandMethod("help")
+    @CommandDescription("Show help command for plots.")
+    public void onPlotHelp(final CommandSender sender) {
+        // TODO Workaround until I figure out something good with Distributor
+        final var builder = new StringBuilder();
+        builder.append("[orange]Plot commands:[]");
+        router.getClientCommands().createCommandHelpHandler().getAllCommands().stream()
+                .filter(entry -> entry.getSyntaxString().startsWith("plot"))
+                .forEach(entry -> builder.append("\n[cyan]")
+                        .append(entry.getSyntaxString())
+                        .append("[]\n > ")
+                        .append(entry.getDescription()));
+        sender.sendMessage(builder.toString());
     }
 
     @CommandMethod("claim <plot>")
@@ -58,8 +73,8 @@ public final class PlotCommands {
         }
     }
 
-    @CommandMethod("revoke <plot>")
-    @CommandDescription("Revoke a plot")
+    @CommandMethod("unclaim <plot>")
+    @CommandDescription("Unclaim a plot you own.")
     public void onPlotRevoke(final CommandSender sender, final @RequireOwnership @Argument("plot") Plot plot) {
         plot.setOwner(null);
         sender.sendMessage("You revoked the plot #" + plot.getId() + ".");
@@ -70,17 +85,6 @@ public final class PlotCommands {
     public void onPlotClear(final CommandSender sender, final @RequireOwnership @Argument("plot") Plot plot) {
         plot.getArea().clear();
         sender.sendMessage("You cleared the plot #" + plot.getId() + ".");
-    }
-
-    @CommandMethod("publish <plot>")
-    @CommandDescription("Publish a plot as a schematic.")
-    public void onPlotPublish(final CommandSender sender, final @RequireOwnership @Argument("plot") Plot plot) {
-        try {
-            router.getSchematicService().publishSchematic(plot);
-            sender.sendMessage("You published the plot #" + plot.getId() + ".");
-        } catch (final InvalidPlotException e) {
-            sender.sendWarning("Failed to publish the plot: " + e.getMessage());
-        }
     }
 
     @CommandMethod("trust <plot> <player>")
@@ -133,6 +137,25 @@ public final class PlotCommands {
             }
         }
         sender.sendMessage(builder.toString());
+    }
+
+    @CommandMethod("share <plot>")
+    @CommandDescription("Share the plot as a schematic with a link.")
+    public void onPlotShare(final CommandSender sender, final @RequireOwnership @Argument("plot") Plot plot) {
+        final var schematic = plot.getArea().getSchematic();
+        if (schematic == null) {
+            sender.sendWarning("Your plot is empty.");
+            return;
+        }
+
+        schematic.tags.put("name", sender.getPlayer().plainName() + "'s schematic");
+        router.getSharing().upload(schematic).whenComplete((uri, throwable) -> {
+            if (throwable != null) {
+                sender.sendWarning("Failed to generate a link for the schematic. Please notify the server owners.");
+            } else {
+                Call.openURI(sender.getPlayer().con(), uri.toString());
+            }
+        });
     }
 
     private boolean isPlayerOnline(final String uuid) {

@@ -27,6 +27,7 @@ import java.util.Objects;
 import mindustry.Vars;
 import mindustry.game.Schematic;
 import mindustry.game.Schematic.Stile;
+import mindustry.gen.Call;
 import mindustry.world.blocks.ConstructBlock.ConstructBuild;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -93,7 +94,7 @@ public final class PlotArea implements Position {
                 && getY() + getH() > position.getY();
     }
 
-    public @Nullable Schematic toSchematic() {
+    public @Nullable Schematic getSchematic() {
         int x1 = Integer.MAX_VALUE;
         int y1 = Integer.MAX_VALUE;
         int x2 = Integer.MIN_VALUE;
@@ -139,6 +140,16 @@ public final class PlotArea implements Position {
             }
 
             return new Schematic(Seq.with(tiles), new StringMap(), x2 - x1 + 1, y2 - y1 + 1);
+        }
+    }
+
+    public void setSchematic(final Schematic schematic) {
+        final var x = (getTileW() - schematic.width) / 2 + getTileX();
+        final var y = (getTileH() - schematic.height) / 2 + getTileY();
+        for (final var stile : schematic.tiles) {
+            final var tile = Vars.world.tile(stile.x + x, stile.y + y);
+            Call.setTile(tile, stile.block, Vars.state.rules.defaultTeam, stile.rotation);
+            tile.build.configure(stile.config);
         }
     }
 

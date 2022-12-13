@@ -22,8 +22,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import mindustry.Vars;
-import mindustry.gen.Call;
 import mindustry.gen.Player;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
@@ -33,7 +31,6 @@ public final class Plot {
     private final PlotArea area;
     private final int id;
     private @Nullable String owner = null;
-    private @Nullable PlotSchematic placeholder = null;
 
     Plot(final PlotArea area, int id) {
         this.area = area;
@@ -51,7 +48,6 @@ public final class Plot {
     public void setOwner(final @Nullable String owner) {
         this.owner = owner;
         if (owner != null) {
-            setPlaceholder(null);
             clearMembers();
         }
     }
@@ -94,24 +90,6 @@ public final class Plot {
 
     public void clearMembers() {
         members.clear();
-    }
-
-    public @Nullable PlotSchematic getPlaceholder() {
-        return placeholder;
-    }
-
-    public void setPlaceholder(final @Nullable PlotSchematic placeholder) {
-        this.placeholder = placeholder;
-        if (placeholder != null) {
-            setOwner(null);
-            final var x = (area.getTileW() - placeholder.getSchematic().width) / 2 + area.getTileX();
-            final var y = (area.getTileH() - placeholder.getSchematic().height) / 2 + area.getTileY();
-            placeholder.getSchematic().tiles.forEach(stile -> {
-                final var tile = Vars.world.tile(stile.x + x, stile.y + y);
-                Call.setTile(tile, stile.block, Vars.state.rules.defaultTeam, stile.rotation);
-                tile.build.configure(stile.config);
-            });
-        }
     }
 
     public int getId() {

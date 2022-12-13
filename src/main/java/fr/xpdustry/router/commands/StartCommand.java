@@ -18,7 +18,6 @@
  */
 package fr.xpdustry.router.commands;
 
-import arc.struct.Seq;
 import cloud.commandframework.annotations.CommandDescription;
 import cloud.commandframework.annotations.CommandMethod;
 import fr.xpdustry.distributor.api.command.sender.CommandSender;
@@ -58,21 +57,6 @@ public final class StartCommand implements PluginListener {
 
             final var plots = router.getPlotManager();
             plots.createPlots(result.getAreas());
-            final var placeholders = router.getSchematicService()
-                    .getLatestSchematics(plots.countPlots())
-                    .iterator();
-            final var available = Seq.with(plots.findAllPlots());
-
-            while (placeholders.hasNext() && !available.isEmpty()) {
-                final var placeholder = placeholders.next();
-                final var plot = available.random();
-                available.remove(plot, true);
-
-                if (placeholder.getSchematic().width <= plot.getArea().getTileW()
-                        && placeholder.getSchematic().height <= plot.getArea().getTileH()) {
-                    plot.setPlaceholder(placeholder);
-                }
-            }
         }
         sender.sendMessage("Router server started.");
     }

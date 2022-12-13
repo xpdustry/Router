@@ -48,8 +48,6 @@ public final class RouterRenderer implements PluginListener {
                 final String title;
                 if (plot.getOwner() != null) {
                     title = "[red]" + getPlayerLastName(plot.getOwner()) + "'s plot";
-                } else if (plot.getPlaceholder() != null) {
-                    title = "[yellow]" + getPlayerLastName(plot.getPlaceholder().getAuthor()) + "'s schematic";
                 } else {
                     title = "[green]Empty plot";
                 }

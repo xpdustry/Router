@@ -18,18 +18,11 @@
  */
 package fr.xpdustry.router.service;
 
-import fr.xpdustry.router.model.Plot;
-import fr.xpdustry.router.model.PlotSchematic;
-import fr.xpdustry.router.repository.SchematicRepository;
-import java.util.List;
+import java.net.URI;
+import java.util.concurrent.CompletableFuture;
+import mindustry.game.Schematic;
 
-public interface SchematicService {
+public interface SchematicShareService {
 
-    static SchematicService simple(final SchematicRepository repository) {
-        return new SimpleSchematicService(repository);
-    }
-
-    void publishSchematic(final Plot plot) throws InvalidPlotException;
-
-    List<PlotSchematic> getLatestSchematics(final long number);
+    CompletableFuture<URI> upload(final Schematic schematic);
 }

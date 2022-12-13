@@ -19,17 +19,19 @@
 package fr.xpdustry.router;
 
 import arc.util.CommandHandler;
+import fr.xpdustry.distributor.api.DistributorProvider;
 import fr.xpdustry.distributor.api.command.ArcCommandManager;
 import fr.xpdustry.distributor.api.command.sender.CommandSender;
+import fr.xpdustry.distributor.api.localization.LocalizationSourceRegistry;
 import fr.xpdustry.distributor.api.plugin.ExtendedPlugin;
 import fr.xpdustry.distributor.api.util.MoreEvents;
 import fr.xpdustry.router.command.RouterCommandManager;
 import fr.xpdustry.router.commands.PlotCommands;
 import fr.xpdustry.router.commands.StartCommand;
-import fr.xpdustry.router.repository.SchematicRepository;
+import fr.xpdustry.router.service.ByteBinSchematicShareService;
 import fr.xpdustry.router.service.PlotManager;
-import fr.xpdustry.router.service.SchematicService;
-import java.io.File;
+import fr.xpdustry.router.service.SchematicShareService;
+import java.util.Locale;
 import mindustry.Vars;
 import mindustry.game.EventType.PlayerJoin;
 import mindustry.game.EventType.PlayerLeave;
@@ -40,9 +42,8 @@ public final class RouterPlugin extends ExtendedPlugin {
 
     public static final String ROUTER_ACTIVE_KEY = "xpdustry-router:active";
 
-    private final SchematicService schematics =
-            SchematicService.simple(SchematicRepository.of(new File("./schematics.sqlite")));
     private final PlotManager plots = PlotManager.simple();
+    private final SchematicShareService sharing = new ByteBinSchematicShareService("https://bytebin.lucko.me");
     private final ArcCommandManager<CommandSender> serverCommands = new RouterCommandManager(this);
     private final ArcCommandManager<CommandSender> clientCommands = new RouterCommandManager(this);
 
@@ -62,9 +63,9 @@ public final class RouterPlugin extends ExtendedPlugin {
                         """
                         Welcome to [cyan]Xpdustry Router[],
                         A dedicated server for building and sharing [cyan]schematics[].
-                        Check out the available commands with [cyan]/help[].
+                        Check out the available plot commands with [cyan]/plot help[].
 
-                        [gray]> The plugin is still in beta, you can suggest new features in the Xpdustry discord server at [blue]https://discord.xpdustry.fr[].[]
+                        [gray]> The plugin is still in beta, you can suggest new features in the Xpdustry discord server with the command [cyan]/discord[].[]
                         """);
             }
         });
@@ -73,6 +74,10 @@ public final class RouterPlugin extends ExtendedPlugin {
             plots.findPlotsByOwner(event.player.uuid()).forEach(p -> p.setOwner(null));
             plots.findAllPlots().forEach(plot -> plot.removeMember(event.player.uuid()));
         });
+
+        final var registry = LocalizationSourceRegistry.create(Locale.ENGLISH);
+        registry.registerAll(Locale.ENGLISH, "bundles/bundle", getClass().getClassLoader());
+        DistributorProvider.get().getGlobalLocalizationSource().addLocalizationSource(registry);
     }
 
     @Override
@@ -93,7 +98,11 @@ public final class RouterPlugin extends ExtendedPlugin {
         return plots;
     }
 
-    public SchematicService getSchematicService() {
-        return schematics;
+    public SchematicShareService getSharing() {
+        return sharing;
+    }
+
+    public ArcCommandManager<CommandSender> getClientCommands() {
+        return clientCommands;
     }
 }
