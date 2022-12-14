@@ -56,20 +56,20 @@ public final class PlotCommands {
     }
 
     @CommandMethod("claim <plot>")
-    @CommandDescription("Claim a plot")
+    @CommandDescription("Claim a plot for editing.")
     public void onPlotClaim(final CommandSender sender, final @Argument("plot") Plot plot) {
         if (router.getPlotManager().countPlotsByOwner(sender.getPlayer().uuid()) == MAX_OWNED_PLOTS) {
             sender.sendMessage("The maximum number of owned plots is " + MAX_OWNED_PLOTS
                     + ", revoke one if you want to claim a new one.");
             return;
         }
-        if (plot.isOwner(sender.getPlayer())) {
+        if (plot.isOwner(sender.getPlayer().uuid())) {
             sender.sendMessage("You have already claimed this plot.");
         } else if (plot.getOwner() != null && isPlayerOnline(plot.getOwner())) {
             sender.sendMessage("You can't claim this plot, it belongs someone online.");
         } else {
             plot.setOwner(sender.getPlayer().uuid());
-            sender.sendMessage("You claimed the plot #" + plot.getId());
+            Call.sendMessage("[accent]Plot " + plot.getId() + " has been claimed by " + sender.getPlayer().name + ".");
         }
     }
 
@@ -77,14 +77,14 @@ public final class PlotCommands {
     @CommandDescription("Unclaim a plot you own.")
     public void onPlotRevoke(final CommandSender sender, final @RequireOwnership @Argument("plot") Plot plot) {
         plot.setOwner(null);
-        sender.sendMessage("You revoked the plot #" + plot.getId() + ".");
+        Call.sendMessage("[accent]Plot " + plot.getId() + " has been unclaimed by " + sender.getPlayer().name + ".");
     }
 
     @CommandMethod("clear <plot>")
     @CommandDescription("Clear a plot")
     public void onPlotClear(final CommandSender sender, final @RequireOwnership @Argument("plot") Plot plot) {
         plot.getArea().clear();
-        sender.sendMessage("You cleared the plot #" + plot.getId() + ".");
+        Call.sendMessage("[accent]Plot " + plot.getId() + " has been cleared by " + sender.getPlayer().name + ".");
     }
 
     @CommandMethod("trust <plot> <player>")
@@ -100,6 +100,8 @@ public final class PlotCommands {
         } else {
             plot.addMember(player.uuid());
             sender.sendMessage("You trusted the player on the plot #" + plot.getId() + ".");
+            player.sendMessage("You have been trusted on the plot #" + plot.getId() + " by "
+                    + sender.getPlayer().name() + ".");
         }
     }
 
@@ -116,6 +118,8 @@ public final class PlotCommands {
         } else {
             plot.removeMember(player.uuid());
             sender.sendMessage("You untrusted the player from the plot #" + plot.getId() + ".");
+            player.sendMessage("You have been untrusted from the plot #" + plot.getId() + " by "
+                    + sender.getPlayer().name() + ".");
         }
     }
 

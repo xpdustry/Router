@@ -24,8 +24,9 @@ import fr.xpdustry.distributor.api.command.sender.CommandSender;
 import fr.xpdustry.distributor.api.plugin.PluginListener;
 import fr.xpdustry.router.RouterPlugin;
 import fr.xpdustry.router.map.MapLoader;
-import fr.xpdustry.router.map.PlotMapGenerator;
+import fr.xpdustry.router.map.SimplePlotMapGenerator;
 import mindustry.Vars;
+import mindustry.content.Blocks;
 import mindustry.game.Gamemode;
 import mindustry.game.Rules;
 
@@ -42,7 +43,7 @@ public final class StartCommand implements PluginListener {
     public void onRouterStart(final CommandSender sender) {
         sender.sendMessage("Starting router server...");
         try (final var loader = new MapLoader()) {
-            final var result = loader.load(PlotMapGenerator.simple());
+            final var result = loader.load(new SimplePlotMapGenerator());
 
             // Apply rules
             final var rules = new Rules();
@@ -52,7 +53,10 @@ public final class StartCommand implements PluginListener {
             rules.unitBuildSpeedMultiplier = Float.MIN_VALUE;
             rules.damageExplosions = false;
             rules.reactorExplosions = false;
+            rules.fire = false;
             rules.ghostBlocks = false;
+            rules.bannedBlocks.add(Blocks.payloadSource);
+
             Vars.state.rules = rules;
 
             final var plots = router.getPlotManager();

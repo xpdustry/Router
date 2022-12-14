@@ -27,7 +27,14 @@ import mindustry.game.Team;
 import mindustry.world.Tiles;
 import mindustry.world.blocks.environment.Floor;
 
-final class SimplePlotMapGenerator implements PlotMapGenerator {
+public final class SimplePlotMapGenerator implements MapGenerator<PlotMapGeneratorResult> {
+
+    private static final String WELCOME_MESSAGE =
+            """
+    Welcome to [cyan]Xpdustry Router[],
+    A dedicated server for building and sharing [cyan]schematics[].
+    Check out the available plot commands with [cyan]/plot help[].
+    """;
 
     private static final int PLOT_QUARTER_X = 2;
     private static final int PLOT_QUARTER_Y = 2;
@@ -47,8 +54,6 @@ final class SimplePlotMapGenerator implements PlotMapGenerator {
     private static final Floor PLOT_FLOOR = Blocks.metalFloor3.asFloor();
     private static final Floor ROAD_FLOOR = Blocks.dacite.asFloor();
 
-    SimplePlotMapGenerator() {}
-
     @Override
     public PlotMapGeneratorResult generate() {
         final var tiles = new Tiles(PLOT_QUARTER_SIZE_X * 2 + MAIN_ROAD_SIZE, PLOT_QUARTER_SIZE_Y * 2 + MAIN_ROAD_SIZE);
@@ -59,7 +64,21 @@ final class SimplePlotMapGenerator implements PlotMapGenerator {
 
         final var coreX = PLOT_QUARTER_SIZE_X + Math.floorDiv(MAIN_ROAD_SIZE, 2);
         final var coreY = PLOT_QUARTER_SIZE_Y + Math.floorDiv(MAIN_ROAD_SIZE, 2);
-        tiles.get(coreX, coreY).setBlock(Blocks.coreNucleus, Team.sharded, 0);
+        tiles.get(coreX, coreY).setBlock(Blocks.coreNucleus, Team.sharded);
+
+        @SuppressWarnings("UnnecessaryLocalVariable")
+        final var messageX = coreX;
+        final var messageY = coreY - Blocks.coreNucleus.size;
+        tiles.get(messageX, messageY).setBlock(Blocks.message, Team.sharded);
+        tiles.get(messageX, messageY).build.configure(WELCOME_MESSAGE);
+        for (int i = -1; i < 2; i++) {
+            for (int j = -1; j < 2; j++) {
+                if (i == 0 && j == 0) {
+                    continue;
+                }
+                tiles.get(messageX + i, messageY + j).setBlock(Blocks.thoriumWall, Team.sharded);
+            }
+        }
 
         for (int i = 0; i < 2; i++) { // QUARTER_X
             for (int j = 0; j < 2; j++) { // QUARTER_Y

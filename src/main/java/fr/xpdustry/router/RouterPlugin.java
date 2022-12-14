@@ -33,9 +33,7 @@ import fr.xpdustry.router.service.PlotManager;
 import fr.xpdustry.router.service.SchematicShareService;
 import java.util.Locale;
 import mindustry.Vars;
-import mindustry.game.EventType.PlayerJoin;
 import mindustry.game.EventType.PlayerLeave;
-import mindustry.gen.Call;
 
 @SuppressWarnings("unused")
 public final class RouterPlugin extends ExtendedPlugin {
@@ -55,20 +53,6 @@ public final class RouterPlugin extends ExtendedPlugin {
     public void onInit() {
         this.addListener(new RouterRenderer(plots));
         Vars.netServer.admins.addActionFilter(new RouterFilter(plots));
-
-        MoreEvents.subscribe(PlayerJoin.class, event -> {
-            if (isActive()) {
-                Call.infoMessage(
-                        event.player.con(),
-                        """
-                        Welcome to [cyan]Xpdustry Router[],
-                        A dedicated server for building and sharing [cyan]schematics[].
-                        Check out the available plot commands with [cyan]/plot help[].
-
-                        [gray]> The plugin is still in beta, you can suggest new features in the Xpdustry discord server with the command [cyan]/discord[].[]
-                        """);
-            }
-        });
 
         MoreEvents.subscribe(PlayerLeave.class, event -> {
             plots.findPlotsByOwner(event.player.uuid()).forEach(p -> p.setOwner(null));

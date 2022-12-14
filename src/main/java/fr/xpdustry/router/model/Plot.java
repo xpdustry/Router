@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import mindustry.gen.Player;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 public final class Plot {
@@ -56,16 +55,8 @@ public final class Plot {
         return player.equals(owner);
     }
 
-    public boolean isOwner(final Player player) {
-        return player.uuid().equals(owner);
-    }
-
     public boolean isTrusted(final String player) {
         return isOwner(player) || hasMember(player);
-    }
-
-    public boolean isTrusted(final Player player) {
-        return isTrusted(player.uuid());
     }
 
     public PlotArea getArea() {

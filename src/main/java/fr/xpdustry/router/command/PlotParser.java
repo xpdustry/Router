@@ -51,10 +51,11 @@ public final class PlotParser<C> implements ArgumentParser<C, Plot> {
     @SuppressWarnings("NullableProblems")
     @Override
     public ArgumentParseResult<Plot> parse(final CommandContext<C> ctx, final Queue<String> inputQueue) {
-        final var input = inputQueue.peek();
-        if (input == null) {
+        final var inputRaw = inputQueue.peek();
+        if (inputRaw == null) {
             return ArgumentParseResult.failure(new NoInputProvidedException(this.getClass(), ctx));
         }
+        final var input = inputRaw.startsWith("#") ? inputRaw.substring(1) : inputRaw;
         final var id = Strings.parseInt(input, -1);
         if (id == -1) {
             return ArgumentParseResult.failure(new PlotNotFoundException(this.getClass(), ctx, input));
@@ -67,7 +68,8 @@ public final class PlotParser<C> implements ArgumentParser<C, Plot> {
                 && !result.get()
                         .isOwner(this.backwardsSenderMapper
                                 .apply(ctx.getSender())
-                                .getPlayer())) {
+                                .getPlayer()
+                                .uuid())) {
             return ArgumentParseResult.failure(new PlotNotOwnedException(this.getClass(), ctx, input));
         }
         inputQueue.remove();
