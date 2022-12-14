@@ -1,4 +1,4 @@
-// import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
+import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
 import fr.xpdustry.toxopid.ModPlatform
 import fr.xpdustry.toxopid.task.GitHubArtifact
 import fr.xpdustry.toxopid.task.GitHubDownload
@@ -46,8 +46,6 @@ dependencies {
     implementation("com.alibaba.fastjson2:fastjson2:2.0.20")
     compileOnly("fr.xpdustry:distributor-api:3.0.0-rc.3")
     annotationProcessor("fr.xpdustry:distributor-api:3.0.0-rc.3")
-    // implementation("org.xerial:sqlite-jdbc:3.39.4.1")   // Driver
-    // implementation("com.j256.ormlite:ormlite-jdbc:6.1") // ORM
 
     val junit = "5.9.0"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
@@ -96,16 +94,14 @@ tasks.register("getArtifactPath") {
     doLast { println(tasks.shadowJar.get().archiveFile.get().toString()) }
 }
 
-/*
 val relocate = tasks.create<ConfigureShadowRelocation>("relocateShadowJar") {
     target = tasks.shadowJar.get()
     prefix = "fr.xpdustry.router.shadow"
 }
- */
 
 tasks.shadowJar {
-    // dependsOn(relocate)
-    // minimize()
+    dependsOn(relocate)
+    minimize()
     doFirst {
         val temp = temporaryDir.resolve("plugin.json")
         temp.writeText(metadata.toJson(true))
@@ -114,6 +110,7 @@ tasks.shadowJar {
     from(rootProject.file("LICENSE.md")) {
         into("META-INF")
     }
+    archiveFileName.set("RouterPlugin.jar")
 }
 
 tasks.build {
