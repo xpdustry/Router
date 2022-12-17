@@ -24,7 +24,6 @@ import fr.xpdustry.distributor.api.command.ArcCommandManager;
 import fr.xpdustry.distributor.api.command.sender.CommandSender;
 import fr.xpdustry.distributor.api.localization.LocalizationSourceRegistry;
 import fr.xpdustry.distributor.api.plugin.ExtendedPlugin;
-import fr.xpdustry.distributor.api.util.MoreEvents;
 import fr.xpdustry.router.command.RouterCommandManager;
 import fr.xpdustry.router.commands.PlotCommands;
 import fr.xpdustry.router.commands.StartCommand;
@@ -33,7 +32,6 @@ import fr.xpdustry.router.service.PlotManager;
 import fr.xpdustry.router.service.SchematicShareService;
 import java.util.Locale;
 import mindustry.Vars;
-import mindustry.game.EventType.PlayerLeave;
 
 @SuppressWarnings("unused")
 public final class RouterPlugin extends ExtendedPlugin {
@@ -45,23 +43,14 @@ public final class RouterPlugin extends ExtendedPlugin {
     private final ArcCommandManager<CommandSender> serverCommands = new RouterCommandManager(this);
     private final ArcCommandManager<CommandSender> clientCommands = new RouterCommandManager(this);
 
-    public static boolean isActive() {
-        return Vars.state.isPlaying() && Vars.state.rules.tags.getBool(ROUTER_ACTIVE_KEY);
-    }
-
     @Override
     public void onInit() {
-        this.addListener(new RouterRenderer(plots));
-        Vars.netServer.admins.addActionFilter(new RouterFilter(plots));
-
-        MoreEvents.subscribe(PlayerLeave.class, event -> {
-            plots.findPlotsByOwner(event.player.uuid()).forEach(p -> p.setOwner(null));
-            plots.findAllPlots().forEach(plot -> plot.removeMember(event.player.uuid()));
-        });
-
         final var registry = LocalizationSourceRegistry.create(Locale.ENGLISH);
         registry.registerAll(Locale.ENGLISH, "bundles/bundle", getClass().getClassLoader());
         DistributorProvider.get().getGlobalLocalizationSource().addLocalizationSource(registry);
+
+        this.addListener(new RouterLogic(this));
+        this.addListener(new RouterRenderer(this));
     }
 
     @Override
@@ -88,5 +77,9 @@ public final class RouterPlugin extends ExtendedPlugin {
 
     public ArcCommandManager<CommandSender> getClientCommands() {
         return clientCommands;
+    }
+
+    public boolean isActive() {
+        return Vars.state.isPlaying() && Vars.state.rules.tags.getBool(ROUTER_ACTIVE_KEY);
     }
 }

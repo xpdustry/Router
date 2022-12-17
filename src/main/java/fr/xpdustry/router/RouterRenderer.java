@@ -22,23 +22,46 @@ import arc.util.Interval;
 import arc.util.Strings;
 import arc.util.Time;
 import fr.xpdustry.distributor.api.plugin.PluginListener;
-import fr.xpdustry.router.service.PlotManager;
+import fr.xpdustry.distributor.api.util.MoreEvents;
 import mindustry.Vars;
+import mindustry.game.EventType;
 import mindustry.gen.Call;
+import mindustry.gen.WorldLabel;
 
 public final class RouterRenderer implements PluginListener {
 
-    private final Interval timer = new Interval();
-    private final PlotManager plots;
+    private static final String WELCOME_MESSAGE =
+            """
+    Welcome to [cyan]Xpdustry Router[],
+    A dedicated server for building and sharing [cyan]schematics[].
+    Check out the available plot commands with [cyan]/plot help[].""";
 
-    public RouterRenderer(final PlotManager plots) {
-        this.plots = plots;
+    private final Interval timer = new Interval();
+    private final RouterPlugin router;
+
+    public RouterRenderer(final RouterPlugin router) {
+        this.router = router;
+    }
+
+    @Override
+    public void onPluginInit() {
+        MoreEvents.subscribe(EventType.PlayEvent.class, event -> {
+            for (final var core : Vars.state.rules.defaultTeam.cores()) {
+                final var tutorial = WorldLabel.create();
+                tutorial.text(WELCOME_MESSAGE);
+                tutorial.x(core.tile().getX());
+                tutorial.y(core.tile().getY() + ((core.block().size / 3F) * Vars.tilesize));
+                tutorial.flags(WorldLabel.flagBackground);
+                tutorial.fontSize(1.4F);
+                tutorial.add();
+            }
+        });
     }
 
     @Override
     public void onPluginUpdate() {
-        if (RouterPlugin.isActive() && timer.get(Time.toSeconds)) {
-            for (final var plot : this.plots.findAllPlots()) {
+        if (router.isActive() && timer.get(Time.toSeconds)) {
+            for (final var plot : router.getPlotManager().findAllPlots()) {
                 Call.label(
                         "Plot [cyan]#[]" + plot.getId(),
                         1F,

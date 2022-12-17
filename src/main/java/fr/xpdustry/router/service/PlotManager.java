@@ -33,6 +33,8 @@ public interface PlotManager {
 
     List<Plot> findPlotsByOwner(final String owner);
 
+    List<Plot> findPlotsByTrusted(final String trusted);
+
     List<Plot> findAllPlots();
 
     long countPlots();

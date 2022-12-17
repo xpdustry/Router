@@ -40,6 +40,11 @@ final class PlotManagerImpl implements PlotManager {
     }
 
     @Override
+    public List<Plot> findPlotsByTrusted(final String trusted) {
+        return plots.values().stream().filter(p -> p.isTrusted(trusted)).toList();
+    }
+
+    @Override
     public List<Plot> findAllPlots() {
         return List.copyOf(plots.values());
     }

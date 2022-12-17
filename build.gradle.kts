@@ -43,7 +43,7 @@ repositories {
 
 dependencies {
     mindustryDependencies()
-    implementation("com.alibaba.fastjson2:fastjson2:2.0.20")
+    implementation("com.alibaba.fastjson2:fastjson2:2.0.21")
     compileOnly("fr.xpdustry:distributor-api:3.0.0-rc.3")
     annotationProcessor("fr.xpdustry:distributor-api:3.0.0-rc.3")
 

@@ -86,4 +86,9 @@ public final class Plot {
     public int getId() {
         return id;
     }
+
+    @Override
+    public String toString() {
+        return "Plot{" + "members=" + members + ", area=" + area + ", id=" + id + ", owner='" + owner + '\'' + '}';
+    }
 }

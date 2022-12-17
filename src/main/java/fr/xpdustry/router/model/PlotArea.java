@@ -18,6 +18,7 @@
  */
 package fr.xpdustry.router.model;
 
+import arc.math.geom.Point2;
 import arc.math.geom.Position;
 import arc.struct.IntSet;
 import arc.struct.Seq;
@@ -85,6 +86,10 @@ public final class PlotArea implements Position {
 
     public boolean contains(final int x, final int y) {
         return getTileX() <= x && getTileX() + getTileW() > x && getTileY() <= y && getTileY() + getTileH() > y;
+    }
+
+    public boolean contains(final Point2 point2) {
+        return contains(point2.x, point2.y);
     }
 
     public boolean contains(final Position position) {
@@ -173,5 +178,10 @@ public final class PlotArea implements Position {
     @Override
     public int hashCode() {
         return Objects.hash(x, y, w, h);
+    }
+
+    @Override
+    public String toString() {
+        return "PlotArea{" + "x=" + x + ", y=" + y + ", w=" + w + ", h=" + h + '}';
     }
 }
