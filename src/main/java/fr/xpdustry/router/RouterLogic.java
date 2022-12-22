@@ -110,7 +110,7 @@ public final class RouterLogic implements PluginListener {
 
         // Reconfigure only allowed links
         if (tile.build instanceof LogicBlock.LogicBuild build) {
-            new ArcList<>(build.links).forEach(build::configure);
+            new ArcList<>(build.links).forEach(link -> build.configure(Point2.pack(link.x, link.y)));
         } else if (tile.build instanceof PowerNode.PowerNodeBuild build) {
             build.configure(new Point2[0]);
         } else if (tile.build instanceof ItemBridge.ItemBridgeBuild build) {
