@@ -88,7 +88,9 @@ public final class RouterLogic implements PluginListener {
     private boolean isAllInTrustedPlots(final String player, final List<Point2> points) {
         final var plots = this.router.getPlotManager().findPlotsByTrusted(player);
         for (final var point : points) {
-            if (plots.stream().noneMatch(plot -> (point.x == -1 || point.y == -1) || plot.getArea().contains(point))) {
+            if (plots.stream()
+                    .noneMatch(plot ->
+                            (point.x == -1 || point.y == -1) || plot.getArea().contains(point))) {
                 return false;
             }
         }
