@@ -1,10 +1,9 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ConfigureShadowRelocation
-import fr.xpdustry.toxopid.ModPlatform
-import fr.xpdustry.toxopid.task.GitHubArtifact
-import fr.xpdustry.toxopid.task.GitHubDownload
-import fr.xpdustry.toxopid.util.ModMetadata
-import fr.xpdustry.toxopid.util.anukenJitpack
-import fr.xpdustry.toxopid.util.mindustryDependencies
+import fr.xpdustry.toxopid.spec.ModPlatform
+import fr.xpdustry.toxopid.task.GithubArtifactDownload
+import fr.xpdustry.toxopid.spec.ModMetadata
+import fr.xpdustry.toxopid.dsl.anukenJitpack
+import fr.xpdustry.toxopid.dsl.mindustryDependencies
 import net.ltgt.gradle.errorprone.CheckSeverity
 import net.ltgt.gradle.errorprone.errorprone
 
@@ -16,7 +15,7 @@ plugins {
     id("net.kyori.indra.licenser.spotless") version "3.0.1"
     id("net.ltgt.errorprone") version "2.0.2"
     id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("fr.xpdustry.toxopid") version "2.1.1"
+    id("fr.xpdustry.toxopid") version "3.0.0-SNAPSHOT"
 }
 
 val metadata = ModMetadata.fromJson(file("plugin.json").readText())
@@ -74,14 +73,15 @@ tasks.withType(JavaCompile::class.java).configureEach {
     }
 }
 
-val downloadModDependencies = tasks.register<GitHubDownload>("downloadModDependencies") {
-    artifacts.add(
-        GitHubArtifact.release("Xpdustry", "Distributor", "v3.0.0-rc.3", "Distributor.jar")
-    )
+val downloadDistributor = tasks.register<GithubArtifactDownload>("downloadDistributor") {
+    user.set("Xpdustry")
+    repo.set("Distributor")
+    name.set("Distributor.jar")
+    version.set("v3.0.0-rc.3")
 }
 
 tasks.runMindustryServer {
-    mods.setFrom(tasks.shadowJar, downloadModDependencies)
+    mods.setFrom(tasks.shadowJar, downloadDistributor)
 }
 
 // It does not need the plugin
