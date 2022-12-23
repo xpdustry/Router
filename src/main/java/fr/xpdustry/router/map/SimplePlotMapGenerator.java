@@ -22,12 +22,12 @@ import fr.xpdustry.router.model.PlotArea;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 import mindustry.content.Blocks;
 import mindustry.game.Team;
-import mindustry.world.Tiles;
 import mindustry.world.blocks.environment.Floor;
 
-public final class SimplePlotMapGenerator implements MapGenerator<PlotMapGeneratorResult> {
+public final class SimplePlotMapGenerator implements MapGenerator<PlotMapContext> {
 
     private static final int PLOT_QUARTER_X = 2;
     private static final int PLOT_QUARTER_Y = 2;
@@ -48,16 +48,18 @@ public final class SimplePlotMapGenerator implements MapGenerator<PlotMapGenerat
     private static final Floor ROAD_FLOOR = Blocks.dacite.asFloor();
 
     @Override
-    public PlotMapGeneratorResult generate() {
-        final var tiles = new Tiles(PLOT_QUARTER_SIZE_X * 2 + MAIN_ROAD_SIZE, PLOT_QUARTER_SIZE_Y * 2 + MAIN_ROAD_SIZE);
-        final var areas = new ArrayList<PlotArea>();
+    public PlotMapContext createContext() {
+        return new SimplePlotMapContext();
+    }
 
-        tiles.fill();
-        tiles.forEach(t -> t.setFloor(ROAD_FLOOR));
+    @Override
+    public void generate(final PlotMapContext context) {
+        context.reset(PLOT_QUARTER_SIZE_X * 2 + MAIN_ROAD_SIZE, PLOT_QUARTER_SIZE_Y * 2 + MAIN_ROAD_SIZE);
+        context.forEachTile(t -> t.setFloor(ROAD_FLOOR));
 
         final var coreX = PLOT_QUARTER_SIZE_X + Math.floorDiv(MAIN_ROAD_SIZE, 2);
         final var coreY = PLOT_QUARTER_SIZE_Y + Math.floorDiv(MAIN_ROAD_SIZE, 2);
-        tiles.get(coreX, coreY).setBlock(Blocks.coreNucleus, Team.sharded);
+        context.setBlock(coreX, coreY, Blocks.coreNucleus, Team.sharded);
 
         for (int i = 0; i < 2; i++) { // QUARTER_X
             for (int j = 0; j < 2; j++) { // QUARTER_Y
@@ -71,43 +73,32 @@ public final class SimplePlotMapGenerator implements MapGenerator<PlotMapGenerat
                                 + (ROAD_SIZE * (l + 1 - j))
                                 + (PLOT_TOTAL_SIZE_Y * l);
 
-                        areas.add(PlotArea.of(x + 1, y + 1, PLOT_SIZE_X, PLOT_SIZE_Y));
-                        setFloors(tiles, x, y, PLOT_TOTAL_SIZE_X, PLOT_TOTAL_SIZE_Y, BORDER_FLOOR); // Outline
-                        setFloors(tiles, x + 1, y + 1, PLOT_SIZE_X, PLOT_SIZE_Y, PLOT_FLOOR); // Internal
+                        context.addArea(PlotArea.of(x + 1, y + 1, PLOT_SIZE_X, PLOT_SIZE_Y));
+                        context.setFloor(x, y, PLOT_TOTAL_SIZE_X, PLOT_TOTAL_SIZE_Y, BORDER_FLOOR); // Outline
+                        context.setFloor(x + 1, y + 1, PLOT_SIZE_X, PLOT_SIZE_Y, PLOT_FLOOR); // Internal
                     }
                 }
             }
         }
-
-        return new SimplePlotMapGeneratorResult(tiles, Collections.unmodifiableList(areas));
     }
 
-    private void setFloors(final Tiles tiles, int x, int y, int width, int height, final Floor floor) {
-        for (int i = x; i < x + width; i++) {
-            for (int j = y; j < y + height; j++) {
-                tiles.get(i, j).setFloor(floor);
-            }
-        }
-    }
+    private static final class SimplePlotMapContext extends SimpleMapContext implements PlotMapContext {
 
-    private static final class SimplePlotMapGeneratorResult implements PlotMapGeneratorResult {
+        private final List<PlotArea> areas = new ArrayList<>();
 
-        private final Tiles tiles;
-        private final List<PlotArea> areas;
-
-        private SimplePlotMapGeneratorResult(final Tiles tiles, final List<PlotArea> areas) {
-            this.tiles = tiles;
-            this.areas = areas;
+        @Override
+        public void addArea(final PlotArea area) {
+            areas.add(area);
         }
 
         @Override
-        public Tiles getTiles() {
-            return tiles;
+        public void forEachArea(Consumer<PlotArea> action) {
+            areas.forEach(action);
         }
 
         @Override
         public List<PlotArea> getAreas() {
-            return areas;
+            return Collections.unmodifiableList(areas);
         }
     }
 }

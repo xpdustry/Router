@@ -20,8 +20,13 @@ package fr.xpdustry.router.map;
 
 import fr.xpdustry.router.model.PlotArea;
 import java.util.List;
+import java.util.function.Consumer;
 
-public interface PlotMapGeneratorResult extends MapGeneratorResult {
+public interface PlotMapContext extends MapContext {
+
+    void addArea(final PlotArea area);
+
+    void forEachArea(final Consumer<PlotArea> action);
 
     List<PlotArea> getAreas();
 }

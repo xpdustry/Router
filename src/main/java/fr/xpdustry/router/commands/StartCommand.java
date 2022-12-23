@@ -18,13 +18,18 @@
  */
 package fr.xpdustry.router.commands;
 
+import arc.util.ColorCodes;
 import cloud.commandframework.annotations.CommandDescription;
 import cloud.commandframework.annotations.CommandMethod;
+import cloud.commandframework.annotations.CommandPermission;
+import cloud.commandframework.annotations.Flag;
 import fr.xpdustry.distributor.api.command.sender.CommandSender;
 import fr.xpdustry.distributor.api.plugin.PluginListener;
 import fr.xpdustry.router.RouterPlugin;
 import fr.xpdustry.router.map.MapLoader;
+import fr.xpdustry.router.map.PlotMapContext;
 import fr.xpdustry.router.map.SimplePlotMapGenerator;
+import java.io.IOException;
 import mindustry.Vars;
 import mindustry.content.Blocks;
 import mindustry.game.Gamemode;
@@ -38,14 +43,27 @@ public final class StartCommand implements PluginListener {
         this.router = router;
     }
 
+    @CommandPermission("fr.xpdustry.router.start")
     @CommandMethod("router start")
     @CommandDescription("Start hosting a router server.")
-    public void onRouterStart(final CommandSender sender) {
-        sender.sendMessage("Starting router server...");
-        try (final var loader = new MapLoader()) {
-            final var result = loader.load(new SimplePlotMapGenerator());
+    public void onRouterStart(final CommandSender sender, final @Flag(value = "force", aliases = "f") boolean force) {
+        if (!force && Vars.state.isPlaying()) {
+            final var message = "A game is already running![white] If you want to start router anyway, "
+                    + "use [accent]/router start --force";
+            sender.sendWarning(
+                    sender.isConsole()
+                            ? message.replace("[white]", ColorCodes.white).replace("[accent]", ColorCodes.yellow)
+                            : message);
+            return;
+        }
 
-            // Apply rules
+        sender.sendMessage("Starting router server...");
+        final PlotMapContext context;
+
+        try (final var loader = new MapLoader()) {
+            context = loader.load(new SimplePlotMapGenerator());
+
+            // Apply the rules
             final var rules = new Rules();
             Gamemode.sandbox.apply(rules);
             rules.modeName = "[orange]Router";
@@ -56,12 +74,14 @@ public final class StartCommand implements PluginListener {
             rules.fire = false;
             rules.ghostBlocks = false;
             rules.bannedBlocks.add(Blocks.payloadSource);
-
             Vars.state.rules = rules;
-
-            final var plots = router.getPlotManager();
-            plots.createPlots(result.getAreas());
+        } catch (final IOException exception) {
+            sender.sendMessage("Failed to start router server: " + exception.getMessage());
+            return;
         }
+
+        final var plots = router.getPlotManager();
+        plots.createPlots(context.getAreas());
         sender.sendMessage("Router server started.");
     }
 }

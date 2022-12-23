@@ -40,6 +40,9 @@ public final class PlotArea implements Position {
     private final int h;
 
     private PlotArea(final int x, final int y, final int w, final int h) {
+        if (w <= 0 || h <= 0) {
+            throw new IllegalArgumentException("width and height must be positive.");
+        }
         this.x = x;
         this.y = y;
         this.w = w;

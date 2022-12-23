@@ -18,13 +18,17 @@
  */
 package fr.xpdustry.router.map;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.function.Consumer;
 import mindustry.Vars;
+import mindustry.core.GameState.State;
 import mindustry.maps.Map;
+import mindustry.net.Administration.Config;
 import mindustry.net.WorldReloader;
 import mindustry.world.Tiles;
 
-public final class MapLoader implements AutoCloseable {
+public final class MapLoader implements Closeable {
 
     private final WorldReloader reloader = new WorldReloader();
 
@@ -43,30 +47,41 @@ public final class MapLoader implements AutoCloseable {
         Vars.world.loadGenerator(width, height, generator::accept);
     }
 
-    public <R extends MapGeneratorResult> R load(final MapGenerator<R> generator) {
+    public <C extends MapContext> C load(final MapGenerator<C> generator) {
         Vars.logic.reset();
         Vars.world.beginMapLoad();
+
         // Clear tile entities
         for (final var tile : Vars.world.tiles) {
             if (tile != null && tile.build != null) {
                 tile.build.remove();
             }
         }
-        final var result = generator.generate();
-        Vars.world.tiles = result.getTiles();
-        generator.generate();
+
+        // I hate it
+        final var context = generator.createContext();
+        generator.generate(context);
+        Vars.world.tiles = new Tiles(1, 1);
+        for (final var action : context.getActions()) {
+            Vars.world.tiles = action.apply(Vars.world.tiles);
+        }
+
         Vars.world.endMapLoad();
-        return result;
+        return context;
     }
 
     @Override
-    public void close() {
-        // TODO Use the internals of openServer() to reload the map
+    public void close() throws IOException {
         Vars.logic.play();
         if (Vars.net.active()) {
             reloader.end();
         } else {
-            Vars.netServer.openServer();
+            try {
+                Vars.net.host(Config.port.num());
+            } catch (final IOException exception) {
+                Vars.state.set(State.menu);
+                throw exception;
+            }
         }
     }
 }

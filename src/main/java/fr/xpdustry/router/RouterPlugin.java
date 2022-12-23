@@ -28,15 +28,15 @@ import fr.xpdustry.router.command.RouterCommandManager;
 import fr.xpdustry.router.commands.PlotCommands;
 import fr.xpdustry.router.commands.StartCommand;
 import fr.xpdustry.router.service.PlotManager;
+import fr.xpdustry.router.service.SimplePlotManager;
 import java.util.Locale;
 import mindustry.Vars;
 
-@SuppressWarnings("unused")
 public final class RouterPlugin extends ExtendedPlugin {
 
     public static final String ROUTER_ACTIVE_KEY = "xpdustry-router:active";
 
-    private final PlotManager plots = PlotManager.simple();
+    private final PlotManager plots = new SimplePlotManager();
     private final ArcCommandManager<CommandSender> serverCommands = new RouterCommandManager(this);
     private final ArcCommandManager<CommandSender> clientCommands = new RouterCommandManager(this);
 
@@ -62,6 +62,7 @@ public final class RouterPlugin extends ExtendedPlugin {
         this.clientCommands.initialize(handler);
         final var annotations = this.clientCommands.createAnnotationParser(CommandSender.class);
         annotations.parse(new PlotCommands(this));
+        annotations.parse(new StartCommand(this));
     }
 
     public PlotManager getPlotManager() {

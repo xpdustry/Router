@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-final class PlotManagerImpl implements PlotManager {
+public final class SimplePlotManager implements PlotManager {
 
     private final Map<Integer, Plot> plots = new HashMap<>();
 

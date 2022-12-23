@@ -18,9 +18,26 @@
  */
 package fr.xpdustry.router.map;
 
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import mindustry.game.Team;
+import mindustry.world.Block;
+import mindustry.world.Tile;
 import mindustry.world.Tiles;
+import mindustry.world.blocks.environment.Floor;
 
-public interface MapGeneratorResult {
+public interface MapContext {
 
-    Tiles getTiles();
+    void reset(final int width, final int height);
+
+    void setBlock(final int x, final int y, final Block block, final Team team);
+
+    void setFloor(final int x, final int y, final Floor floor);
+
+    void setFloor(final int x, final int y, final int w, final int h, final Floor floor);
+
+    void forEachTile(final Consumer<Tile> action);
+
+    List<Function<Tiles, Tiles>> getActions();
 }

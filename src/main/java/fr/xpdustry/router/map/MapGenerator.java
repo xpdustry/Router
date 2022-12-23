@@ -19,10 +19,11 @@
 package fr.xpdustry.router.map;
 
 /**
- * Simple class to generate maps, each instance can only be used once,
- * unless you want IllegalStateExceptions.
+ * Simple class to generate maps.
  */
-public interface MapGenerator<R extends MapGeneratorResult> {
+public interface MapGenerator<C extends MapContext> {
 
-    R generate();
+    C createContext();
+
+    void generate(C context);
 }

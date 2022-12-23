@@ -18,14 +18,22 @@
  */
 package fr.xpdustry.router;
 
+import arc.math.geom.Position;
+import arc.math.geom.Vec2;
+import arc.util.CommandHandler;
 import arc.util.Interval;
 import arc.util.Strings;
 import arc.util.Time;
 import fr.xpdustry.distributor.api.plugin.PluginListener;
 import fr.xpdustry.distributor.api.util.MoreEvents;
+import fr.xpdustry.router.model.Plot;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import mindustry.Vars;
 import mindustry.game.EventType;
 import mindustry.gen.Call;
+import mindustry.gen.Groups;
 import mindustry.gen.WorldLabel;
 
 public final class RouterRenderer implements PluginListener {
@@ -36,6 +44,7 @@ public final class RouterRenderer implements PluginListener {
     A dedicated server for building and sharing [cyan]schematics[].
     Check out the available plot commands with [cyan]/plot help[].""";
 
+    private final Set<String> debuggers = new HashSet<>();
     private final Interval timer = new Interval();
     private final RouterPlugin router;
 
@@ -56,6 +65,25 @@ public final class RouterRenderer implements PluginListener {
                 tutorial.add();
             }
         });
+
+        MoreEvents.subscribe(EventType.PlayerLeave.class, event -> {
+            this.debuggers.remove(event.player.uuid());
+        });
+    }
+
+    @Override
+    public void onPluginClientCommandsRegistration(final CommandHandler handler) {
+        final var manager = router.getClientCommands();
+        // TODO Maybe move the debug command elsewhere
+        manager.command(manager.commandBuilder("router").literal("debug").handler(context -> {
+            final var uuid = context.getSender().getPlayer().uuid();
+            if (!debuggers.add(uuid)) {
+                debuggers.remove(uuid);
+                context.getSender().sendMessage("Debug mode disabled.");
+            } else {
+                context.getSender().sendMessage("Debug mode enabled.");
+            }
+        }));
     }
 
     @Override
@@ -80,11 +108,29 @@ public final class RouterRenderer implements PluginListener {
                         1F,
                         plot.getArea().getX() + (plot.getArea().getW() / 2F),
                         plot.getArea().getY() + plot.getArea().getH());
+
+                Groups.player.each(player -> debuggers.contains(player.uuid()), player -> getBuildBoundaries(plot)
+                        .forEach(boundary ->
+                                Call.label("[gray]<" + plot.getId() + ">", 1F, boundary.getX(), boundary.getY())));
             }
         }
     }
 
     private String getPlayerLastName(final String uuid) {
         return Strings.stripColors(Vars.netServer.admins.getInfo(uuid).lastName);
+    }
+
+    private List<Position> getBuildBoundaries(final Plot plot) {
+        return List.of(
+                new Vec2(plot.getArea().getX(), plot.getArea().getY()),
+                new Vec2(
+                        plot.getArea().getX() + plot.getArea().getW() - Vars.tilesize,
+                        plot.getArea().getY()),
+                new Vec2(
+                        plot.getArea().getX(),
+                        plot.getArea().getY() + plot.getArea().getH() - Vars.tilesize),
+                new Vec2(
+                        plot.getArea().getX() + plot.getArea().getW() - Vars.tilesize,
+                        plot.getArea().getY() + plot.getArea().getH() - Vars.tilesize));
     }
 }

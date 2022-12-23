@@ -1,6 +1,6 @@
 {
   "name": "xpdustry-router",
-  "displayName": "Xpdustry RouterPlugin",
+  "displayName": "RouterPlugin",
   "author": "Xpdustry",
   "description": "A Reddit-like server for sharing schematics.",
   "version": "1.0.0",
