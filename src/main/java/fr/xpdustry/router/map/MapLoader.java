@@ -22,7 +22,6 @@ import java.util.function.Consumer;
 import mindustry.Vars;
 import mindustry.maps.Map;
 import mindustry.net.WorldReloader;
-import mindustry.world.Tile;
 import mindustry.world.Tiles;
 
 public final class MapLoader implements AutoCloseable {
@@ -48,7 +47,7 @@ public final class MapLoader implements AutoCloseable {
         Vars.logic.reset();
         Vars.world.beginMapLoad();
         // Clear tile entities
-        for (Tile tile : Vars.world.tiles) {
+        for (final var tile : Vars.world.tiles) {
             if (tile != null && tile.build != null) {
                 tile.build.remove();
             }
@@ -62,6 +61,7 @@ public final class MapLoader implements AutoCloseable {
 
     @Override
     public void close() {
+        // TODO Use the internals of openServer() to reload the map
         Vars.logic.play();
         if (Vars.net.active()) {
             reloader.end();

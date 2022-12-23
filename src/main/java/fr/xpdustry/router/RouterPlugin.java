@@ -27,9 +27,7 @@ import fr.xpdustry.distributor.api.plugin.ExtendedPlugin;
 import fr.xpdustry.router.command.RouterCommandManager;
 import fr.xpdustry.router.commands.PlotCommands;
 import fr.xpdustry.router.commands.StartCommand;
-import fr.xpdustry.router.service.ByteBinSchematicShareService;
 import fr.xpdustry.router.service.PlotManager;
-import fr.xpdustry.router.service.SchematicShareService;
 import java.util.Locale;
 import mindustry.Vars;
 
@@ -39,7 +37,6 @@ public final class RouterPlugin extends ExtendedPlugin {
     public static final String ROUTER_ACTIVE_KEY = "xpdustry-router:active";
 
     private final PlotManager plots = PlotManager.simple();
-    private final SchematicShareService sharing = new ByteBinSchematicShareService("https://bytebin.lucko.me");
     private final ArcCommandManager<CommandSender> serverCommands = new RouterCommandManager(this);
     private final ArcCommandManager<CommandSender> clientCommands = new RouterCommandManager(this);
 
@@ -69,10 +66,6 @@ public final class RouterPlugin extends ExtendedPlugin {
 
     public PlotManager getPlotManager() {
         return plots;
-    }
-
-    public SchematicShareService getSharing() {
-        return sharing;
     }
 
     public ArcCommandManager<CommandSender> getClientCommands() {

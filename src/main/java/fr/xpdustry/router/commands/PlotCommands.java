@@ -143,25 +143,6 @@ public final class PlotCommands {
         sender.sendMessage(builder.toString());
     }
 
-    @CommandMethod("share <plot>")
-    @CommandDescription("Share the plot as a schematic with a link.")
-    public void onPlotShare(final CommandSender sender, final @RequireOwnership @Argument("plot") Plot plot) {
-        final var schematic = plot.getArea().getSchematic();
-        if (schematic == null) {
-            sender.sendWarning("Your plot is empty.");
-            return;
-        }
-
-        schematic.tags.put("name", sender.getPlayer().plainName() + "'s schematic");
-        router.getSharing().upload(schematic).whenComplete((uri, throwable) -> {
-            if (throwable != null) {
-                sender.sendWarning("Failed to generate a link for the schematic. Please notify the server owners.");
-            } else {
-                Call.openURI(sender.getPlayer().con(), uri.toString());
-            }
-        });
-    }
-
     private boolean isPlayerOnline(final String uuid) {
         return Groups.player.find(p -> p.uuid().equals(uuid)) != null;
     }
