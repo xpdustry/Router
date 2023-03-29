@@ -1,13 +1,15 @@
 {
-  "name": "xpdustry-router",
+  "name": "router",
   "displayName": "RouterPlugin",
   "author": "Xpdustry",
   "description": "A Reddit-like server for sharing schematics.",
   "version": "1.0.0",
-  "minGameVersion": "140.2",
+  "minGameVersion": "142",
   "hidden": true,
   "java": true,
   "main": "fr.xpdustry.router.RouterPlugin",
   "repo": "Xpdustry/Router",
-  "dependencies": []
+  "dependencies": [
+    "distributor-core"
+  ]
 }

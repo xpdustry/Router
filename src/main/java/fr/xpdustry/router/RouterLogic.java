@@ -22,9 +22,9 @@ import arc.Core;
 import arc.math.geom.Point2;
 import arc.util.Interval;
 import arc.util.Time;
+import fr.xpdustry.distributor.api.event.EventHandler;
 import fr.xpdustry.distributor.api.plugin.PluginListener;
-import fr.xpdustry.distributor.api.util.ArcList;
-import fr.xpdustry.distributor.api.util.MoreEvents;
+import fr.xpdustry.distributor.api.util.ArcCollections;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,20 +61,22 @@ public final class RouterLogic implements PluginListener {
 
     @Override
     public void onPluginInit() {
-        MoreEvents.subscribe(EventType.PlayerJoin.class, event -> {
-            this.warns.put(event.player.uuid(), new Interval());
-        });
-
-        MoreEvents.subscribe(EventType.PlayerLeave.class, event -> {
-            this.router.getPlotManager().findPlotsByOwner(event.player.uuid()).forEach(p -> p.setOwner(null));
-            this.router
-                    .getPlotManager()
-                    .findPlotsByTrusted(event.player.uuid())
-                    .forEach(plot -> plot.removeMember(event.player.uuid()));
-            this.warns.remove(event.player.uuid());
-        });
-
         Vars.netServer.admins.addActionFilter(this::filterAction);
+    }
+
+    @EventHandler
+    public void onPlayerJoin(final EventType.PlayerJoin event) {
+        this.warns.put(event.player.uuid(), new Interval());
+    }
+
+    @EventHandler
+    public void onPlayerLeave(final EventType.PlayerLeave event) {
+        this.router.getPlotManager().findPlotsByOwner(event.player.uuid()).forEach(p -> p.setOwner(null));
+        this.router
+                .getPlotManager()
+                .findPlotsByTrusted(event.player.uuid())
+                .forEach(plot -> plot.removeMember(event.player.uuid()));
+        this.warns.remove(event.player.uuid());
     }
 
     private boolean filterAction(final Administration.PlayerAction action) {
@@ -138,7 +140,7 @@ public final class RouterLogic implements PluginListener {
 
         // Reconfigure only allowed links
         if (tile.build instanceof LogicBlock.LogicBuild build) {
-            new ArcList<>(build.links).forEach(link -> build.configure(Point2.pack(link.x, link.y)));
+            ArcCollections.immutableList(build.links).forEach(link -> build.configure(Point2.pack(link.x, link.y)));
         } else if (tile.build instanceof PowerNode.PowerNodeBuild build) {
             build.configure(new Point2[0]);
         } else if (tile.build instanceof ItemBridge.ItemBridgeBuild build) {

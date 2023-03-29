@@ -23,7 +23,7 @@ import fr.xpdustry.distributor.api.DistributorProvider;
 import fr.xpdustry.distributor.api.command.ArcCommandManager;
 import fr.xpdustry.distributor.api.command.sender.CommandSender;
 import fr.xpdustry.distributor.api.localization.LocalizationSourceRegistry;
-import fr.xpdustry.distributor.api.plugin.ExtendedPlugin;
+import fr.xpdustry.distributor.api.plugin.AbstractMindustryPlugin;
 import fr.xpdustry.router.command.RouterCommandManager;
 import fr.xpdustry.router.commands.PlotCommands;
 import fr.xpdustry.router.commands.StartCommand;
@@ -32,7 +32,7 @@ import fr.xpdustry.router.service.SimplePlotManager;
 import java.util.Locale;
 import mindustry.Vars;
 
-public final class RouterPlugin extends ExtendedPlugin {
+public final class RouterPlugin extends AbstractMindustryPlugin {
 
     public static final String ROUTER_ACTIVE_KEY = "xpdustry-router:active";
 

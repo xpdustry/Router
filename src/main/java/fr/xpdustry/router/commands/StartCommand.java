@@ -74,6 +74,7 @@ public final class StartCommand implements PluginListener {
             rules.fire = false;
             rules.ghostBlocks = false;
             rules.bannedBlocks.add(Blocks.payloadSource);
+            rules.canGameOver = false;
             Vars.state.rules = rules;
         } catch (final IOException exception) {
             sender.sendMessage("Failed to start router server: " + exception.getMessage());

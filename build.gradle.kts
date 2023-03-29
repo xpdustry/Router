@@ -15,7 +15,7 @@ plugins {
     id("net.kyori.indra.licenser.spotless") version "3.0.1"
     id("net.ltgt.errorprone") version "2.0.2"
     id("com.github.johnrengelman.shadow") version "7.1.2"
-    id("fr.xpdustry.toxopid") version "3.0.0-SNAPSHOT"
+    id("fr.xpdustry.toxopid") version "3.1.0"
 }
 
 val metadata = ModMetadata.fromJson(file("plugin.json").readText())
@@ -38,13 +38,15 @@ repositories {
         name = "xpdustry-releases"
         mavenContent { releasesOnly() }
     }
+    maven("https://maven.xpdustry.fr/snapshots") {
+        name = "xpdustry-snapshots"
+        mavenContent { snapshotsOnly() }
+    }
 }
 
 dependencies {
     mindustryDependencies()
-    implementation("com.alibaba.fastjson2:fastjson2:2.0.21")
-    compileOnly("fr.xpdustry:distributor-api:3.0.0-rc.3")
-    annotationProcessor("fr.xpdustry:distributor-api:3.0.0-rc.3")
+    compileOnly("fr.xpdustry:distributor-api:3.0.0-SNAPSHOT")
 
     val junit = "5.9.0"
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junit")
@@ -52,8 +54,8 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junit")
 
     // Static analysis
-    annotationProcessor("com.uber.nullaway:nullaway:0.10.5")
-    errorprone("com.google.errorprone:error_prone_core:2.16")
+    annotationProcessor("com.uber.nullaway:nullaway:0.10.10")
+    errorprone("com.google.errorprone:error_prone_core:2.18.0")
 }
 
 tasks.withType(JavaCompile::class.java).configureEach {
@@ -73,15 +75,17 @@ tasks.withType(JavaCompile::class.java).configureEach {
     }
 }
 
+/*
 val downloadDistributor = tasks.register<GithubArtifactDownload>("downloadDistributor") {
     user.set("Xpdustry")
     repo.set("Distributor")
     name.set("Distributor.jar")
     version.set("v3.0.0-rc.3")
 }
+ */
 
 tasks.runMindustryServer {
-    mods.setFrom(tasks.shadowJar, downloadDistributor)
+    mods.setFrom(tasks.shadowJar, files("libs/DistributorCore.jar"))
 }
 
 // It does not need the plugin

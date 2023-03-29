@@ -24,8 +24,8 @@ import arc.util.CommandHandler;
 import arc.util.Interval;
 import arc.util.Strings;
 import arc.util.Time;
+import fr.xpdustry.distributor.api.event.EventHandler;
 import fr.xpdustry.distributor.api.plugin.PluginListener;
-import fr.xpdustry.distributor.api.util.MoreEvents;
 import fr.xpdustry.router.model.Plot;
 import java.util.HashSet;
 import java.util.List;
@@ -40,9 +40,9 @@ public final class RouterRenderer implements PluginListener {
 
     private static final String WELCOME_MESSAGE =
             """
-    Welcome to [cyan]Xpdustry Router[],
-    A dedicated server for building and sharing [cyan]schematics[].
-    Check out the available plot commands with [cyan]/plot help[].""";
+            Welcome to [cyan]Xpdustry Router[],
+            A dedicated server for building and sharing [cyan]schematics[].
+            Check out the available plot commands with [cyan]/plot help[].""";
 
     private final Set<String> debuggers = new HashSet<>();
     private final Interval timer = new Interval();
@@ -52,23 +52,22 @@ public final class RouterRenderer implements PluginListener {
         this.router = router;
     }
 
-    @Override
-    public void onPluginInit() {
-        MoreEvents.subscribe(EventType.PlayEvent.class, event -> {
-            for (final var core : Vars.state.rules.defaultTeam.cores()) {
-                final var tutorial = WorldLabel.create();
-                tutorial.text(WELCOME_MESSAGE);
-                tutorial.x(core.tile().getX());
-                tutorial.y(core.tile().getY() + ((core.block().size / 3F) * Vars.tilesize));
-                tutorial.flags(WorldLabel.flagBackground);
-                tutorial.fontSize(1.4F);
-                tutorial.add();
-            }
-        });
+    @EventHandler
+    public void onPlayEvent(final EventType.PlayEvent event) {
+        for (final var core : Vars.state.rules.defaultTeam.cores()) {
+            final var tutorial = WorldLabel.create();
+            tutorial.text(WELCOME_MESSAGE);
+            tutorial.x(core.tile().getX());
+            tutorial.y(core.tile().getY() + ((core.block().size / 3F) * Vars.tilesize));
+            tutorial.flags(WorldLabel.flagBackground);
+            tutorial.fontSize(1.4F);
+            tutorial.add();
+        }
+    }
 
-        MoreEvents.subscribe(EventType.PlayerLeave.class, event -> {
-            this.debuggers.remove(event.player.uuid());
-        });
+    @EventHandler
+    public void onPlayerLeave(final EventType.PlayerLeave event) {
+        this.debuggers.remove(event.player.uuid());
     }
 
     @Override

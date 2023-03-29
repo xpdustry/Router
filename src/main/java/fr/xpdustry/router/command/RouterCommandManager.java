@@ -20,32 +20,17 @@ package fr.xpdustry.router.command;
 
 import cloud.commandframework.arguments.parser.ParserParameters;
 import fr.xpdustry.distributor.api.command.ArcCommandManager;
-import fr.xpdustry.distributor.api.command.ArcParserParameters;
-import fr.xpdustry.distributor.api.command.argument.PlayerArgument;
-import fr.xpdustry.distributor.api.command.argument.TeamArgument;
-import fr.xpdustry.distributor.api.command.argument.TeamArgument.TeamMode;
 import fr.xpdustry.distributor.api.command.sender.CommandSender;
 import fr.xpdustry.router.RouterPlugin;
 import fr.xpdustry.router.model.Plot;
 import io.leangen.geantyref.TypeToken;
 import java.util.function.Function;
-import mindustry.game.Team;
-import mindustry.gen.Player;
 
 // Temporary class to fix a dumb bug in Distributor
 public final class RouterCommandManager extends ArcCommandManager<CommandSender> {
 
     public RouterCommandManager(final RouterPlugin plugin) {
-        super(plugin, Function.identity(), Function.identity());
-
-        this.parserRegistry()
-                .registerParserSupplier(TypeToken.get(Player.class), params -> new PlayerArgument.PlayerParser<>());
-
-        this.parserRegistry()
-                .registerParserSupplier(
-                        TypeToken.get(Team.class),
-                        params -> new TeamArgument.TeamParser<>(
-                                params.get(ArcParserParameters.TEAM_MODE, TeamMode.BASE)));
+        super(plugin, Function.identity(), Function.identity(), false);
 
         this.parserRegistry()
                 .registerAnnotationMapper(
